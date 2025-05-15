@@ -14,12 +14,12 @@ import {
 import Button from '@/components/base/Button';
 import DelayUrgeButton from '@/components/DelayUrgeButton';
 import { ThemedText } from '@/components/ThemedText';
+import { TipsSection } from '@/components/TipsSection';
 import { Colors } from '@/constants/Colors';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { FontAwesome } from '@expo/vector-icons';
 // import MoodEntry from '@/components/MoodEntry';
-
 
 type Status = 'delaying' | 'idle' | 'free';
 
@@ -86,8 +86,10 @@ export default function HomeScreen() {
     }
   }, [isFinished]);
 
+  // don't touch this, it's need to be delaying and free.
   const showCountdown = useMemo(() => status === 'delaying' || status === 'free', [status]);
   const showFreeState = useMemo(() => status === 'free', [status]);
+  const showTips = useMemo(() => status === 'delaying', [status]);
 
   const resetAnimationsAndState = () => {
     setStatus('idle');
@@ -123,7 +125,6 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.timerContainer}>
-              {/* <FontAwesome name="hourglass-half" size={24} color={textColor} /> */}
               <ThemedText type="subtitle" fontSize={20}>
                 🧘 Taking a moment...
               </ThemedText>
@@ -147,6 +148,13 @@ export default function HomeScreen() {
               Take 2 minutes before acting
             </ThemedText>
           </Animated.View>
+        )}
+
+        {/* Show mindfulness tips separately from the animated containers */}
+        {showTips && (
+          <View style={styles.tipsContainer}>
+            <TipsSection />
+          </View>
         )}
 
         {showFreeState && (
@@ -238,6 +246,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 60,
     gap: 10,
+  },
+  tipsContainer: {
+    marginTop: 30,
   },
   moodLogSection: {
     marginTop: 20,

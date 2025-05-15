@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '400',
-    lineHeight: 32,
+    lineHeight: 46,
   },
   subtitle: {
     fontSize: 20,

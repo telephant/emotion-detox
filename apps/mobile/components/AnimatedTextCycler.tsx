@@ -20,73 +20,96 @@ export const AnimatedTextCycler: React.FC<AnimatedTextCyclerProps> = ({
   repeat = true,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const indexRef = useRef(0); // Track the current index to avoid stale state
+  const isMountedRef = useRef(true);
   
+  // Get the actual index to display
   const displayIndex = texts.length > 0 ? currentIndex % texts.length : 0;
-  
-  // Animation functions
-  const fadeIn = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  };
-  
-  const fadeOut = (onComplete: () => void) => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 500,
-      useNativeDriver: true,
-    }).start(onComplete);
-  };
 
+  // Clean up function to prevent memory leaks and state updates after unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+  
+  // Reset if texts array changes
+  useEffect(() => {
+    setCurrentIndex(0);
+    indexRef.current = 0;
+  }, [texts]);
+  
   // Handle the cycling of texts
   useEffect(() => {
     // Don't animate if there are no texts
     if (texts.length === 0) return;
     
-    // Initial fade in
-    fadeIn();
-    
-    // Schedule the first fade out
-    const cycleTexts = () => {
-      timerRef.current = setTimeout(() => {
-        fadeOut(() => {
-          const nextIndex = currentIndex + 1;
-          
-          // Check if we're at the end of the texts
-          if (nextIndex >= texts.length) {
-            if (repeat) {
-              setCurrentIndex(0);
-            } else {
-              onComplete?.();
-              return; // Stop cycling
-            }
+    // Function to cycle to next text
+    const cycleToNextText = () => {
+      // Fade out
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (!finished || !isMountedRef.current) return;
+        
+        // Advance to next index
+        indexRef.current++;
+        
+        // Handle reaching the end
+        if (indexRef.current >= texts.length) {
+          if (repeat) {
+            indexRef.current = 0;
           } else {
-            setCurrentIndex(nextIndex);
+            if (onComplete) onComplete();
+            return;
           }
+        }
+        
+        // Update the displayed index
+        if (isMountedRef.current) {
+          setCurrentIndex(indexRef.current);
           
           // Fade in the next text
-          fadeIn();
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
           
-          // Continue cycling
-          cycleTexts();
-        });
-      }, interval);
+          // Schedule next cycle after interval
+          scheduleNextCycle();
+        }
+      });
     };
     
-    cycleTexts();
+    // Schedule the next cycle with clear timer safety
+    const scheduleNextCycle = () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      
+      if (isMountedRef.current) {
+        timerRef.current = setTimeout(cycleToNextText, interval);
+      }
+    };
     
-    // Cleanup
+    // Start the cycling
+    scheduleNextCycle();
+    
+    // Clean up on unmount or when dependencies change
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
-        timerRef.current = null;
       }
     };
-  }, [currentIndex, texts, interval, repeat, onComplete]);
+  }, [texts, interval, repeat, onComplete]);
   
   // Render nothing if no texts
   if (texts.length === 0) return null;

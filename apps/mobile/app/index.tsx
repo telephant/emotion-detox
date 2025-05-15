@@ -39,7 +39,7 @@ export default function HomeScreen() {
     countdownText,
     startCountdown,
     resetCountdown,
-  } = useCountdown(5);
+  } = useCountdown(120);
 
   const handleDelayPress = () => {
     setStatus('delaying');
@@ -108,7 +108,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.containerBody}>
         <View style={styles.header}>
-          <ThemedText type="title">Emotion Detox</ThemedText>
+          <ThemedText type="title">Still the Want</ThemedText>
           <ThemedText
             type="subtitle"
             color={Colors.light.primary}
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   containerBody: {
     flex: 1,
-    padding: 40,
+    padding: 30,
   },
   header: {
     alignItems: 'center',
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   urgeContainer: {
     display: 'flex',
-    paddingTop: '20%',
+    paddingTop: 20,
     alignItems: 'center',
     gap: 20,
   },

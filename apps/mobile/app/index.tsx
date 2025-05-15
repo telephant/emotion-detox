@@ -2,45 +2,105 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Animated,
 } from 'react-native';
 
 import Button from '@/components/base/Button';
 import DelayUrgeButton from '@/components/DelayUrgeButton';
-import MoodEntry from '@/components/MoodEntry';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { FontAwesome } from '@expo/vector-icons';
+// import MoodEntry from '@/components/MoodEntry';
 
 
 type Status = 'delaying' | 'idle' | 'free';
 
 export default function HomeScreen() {
   const [status, setStatus] = useState<Status>('idle');
+  
+  // Separate animation values for countdown and free state
+  const countdownFadeAnim = useRef(new Animated.Value(0)).current;
+  const countdownSlideAnim = useRef(new Animated.Value(20)).current;
+  
+  const freeFadeAnim = useRef(new Animated.Value(0)).current;
+  const freeSlideAnim = useRef(new Animated.Value(20)).current;
 
   const textColor = useThemeColor({}, 'textPrimary');
-  const { isFinished, countdownText, startCountdown } = useCountdown(5);
+  const {
+    isFinished,
+    countdownText,
+    startCountdown,
+    resetCountdown,
+  } = useCountdown(5);
 
   const handleDelayPress = () => {
     setStatus('delaying');
     startCountdown();
+    
+    // Reset and start countdown animations
+    countdownFadeAnim.setValue(0);
+    countdownSlideAnim.setValue(20);
+    
+    Animated.parallel([
+      Animated.timing(countdownFadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(countdownSlideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      })
+    ]).start();
   };
 
   useEffect(() => {
     if (isFinished) {
       setStatus('free');
+      
+      // Reset and start free state animations
+      freeFadeAnim.setValue(0);
+      freeSlideAnim.setValue(20);
+      
+      Animated.parallel([
+        Animated.timing(freeFadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(freeSlideAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        })
+      ]).start();
     }
   }, [isFinished]);
 
   const showCountdown = useMemo(() => status === 'delaying' || status === 'free', [status]);
+  const showFreeState = useMemo(() => status === 'free', [status]);
+
+  const resetAnimationsAndState = () => {
+    setStatus('idle');
+    resetCountdown();
+    countdownFadeAnim.setValue(0);
+    countdownSlideAnim.setValue(20);
+    freeFadeAnim.setValue(0);
+    freeSlideAnim.setValue(20);
+  };
+
+  const handlePressPeaceful = resetAnimationsAndState;
+  const handlePressUrge = resetAnimationsAndState;
+  const handlePressUrgeOver = resetAnimationsAndState;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,50 +123,66 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.timerContainer}>
-              <FontAwesome name="hourglass-half" size={24} color={textColor} />
+              {/* <FontAwesome name="hourglass-half" size={24} color={textColor} /> */}
               <ThemedText type="subtitle" fontSize={20}>
-                Taking a moment...
+                🧘 Taking a moment...
               </ThemedText>
             </View>
           </>
         )}
 
         {showCountdown && (
-          <View style={styles.urgeContainer}>
+          <Animated.View 
+            style={[
+              styles.urgeContainer, 
+              { 
+                opacity: countdownFadeAnim,
+                transform: [{ translateY: countdownSlideAnim }]
+              }
+            ]}
+          >
             <FontAwesome name="hourglass-half" size={100} color={textColor} />
             <ThemedText type="subtitle" fontSize={40}>{countdownText}</ThemedText>
             <ThemedText type="subtitle" fontSize={20}>
               Take 2 minutes before acting
             </ThemedText>
-          </View>
+          </Animated.View>
         )}
 
-        {status === 'free' && (
-          <View style={styles.freeContainer}>
+        {showFreeState && (
+          <Animated.View 
+            style={[
+              styles.freeContainer, 
+              { 
+                opacity: freeFadeAnim,
+                transform: [{ translateY: freeSlideAnim }]
+              }
+            ]}
+          >
             <ThemedText type="subtitle" fontSize={30}>
               You&apos;re free to act now
             </ThemedText>
             <View style={styles.buttonContainer}>
-              <Button onPress={() => setStatus('idle')} fullWidth>
+              <Button onPress={handlePressPeaceful} fullWidth>
                 <ThemedText type="subtitle" fontSize={20}>
                   ☀️ Peaceful Now
                 </ThemedText>
               </Button>
-              <Button type="secondary" onPress={() => setStatus('idle')} fullWidth>
+              <Button type="secondary" onPress={handlePressUrge} fullWidth>
                 <ThemedText type="subtitle" fontSize={20}>
                   🌀 Urge&apos;s Still Here
                 </ThemedText>
               </Button>
-              <Button type="danger" onPress={() => setStatus('idle')} fullWidth>
+              <Button type="danger" onPress={handlePressUrgeOver} fullWidth>
                 <ThemedText type="subtitle" fontSize={20} color={Colors.light.white}>
                   😫 Urge Took Over
                 </ThemedText>
               </Button>
             </View>
-          </View>
+          </Animated.View>
         )}
 
-        {status === 'idle' && (
+        {/* {status === 'idle' && (
           <View style={styles.moodLogSection}>
             <View style={styles.moodLogHeader}>
               <Text style={styles.sectionTitle}>Mood Log</Text>
@@ -124,8 +200,7 @@ export default function HomeScreen() {
               description="Felt like I wanted to reach out..."
             />
           </View>
-        )}
-
+        )} */}
       </View>
     </SafeAreaView>
   );

@@ -2,6 +2,7 @@
   "name": "emotion-detox",
   "private": true,
   "scripts": {
+    "mobile": "turbo run --filter=mobile",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

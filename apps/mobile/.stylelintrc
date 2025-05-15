@@ -1,0 +1,8 @@
+{
+  "plugins": [
+    "stylelint-react-native"
+  ],
+  "rules": {
+    "react-native/no-unsupported-properties": true
+  }
+}

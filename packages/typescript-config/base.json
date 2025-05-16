@@ -4,7 +4,6 @@
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "incremental": false,
     "isolatedModules": true,
     "lib": ["es2022", "DOM", "DOM.Iterable"],
     "module": "NodeNext",
@@ -14,6 +13,15 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ES2022"
-  }
+    "target": "ES2022",
+    "baseUrl": ".",
+    "paths": {
+      "@repo/shared-types/*": ["../shared-types/src/*"]
+    }
+  },
+  "references": [
+    {
+      "path": "../shared-types"
+    }
+  ]
 }

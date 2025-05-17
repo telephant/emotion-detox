@@ -1,10 +1,13 @@
 {
-  "name": "shared-types",
+  "name": "@repo/shared-types",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Shared type definitions for Emotion Detox",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "keywords": [],
   "author": "",

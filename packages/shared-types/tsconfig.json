@@ -3,7 +3,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "composite": true,
-    "incremental": false,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "rootDir": "src"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

@@ -15,6 +15,7 @@ import Button from '@/components/base/Button';
 import DelayUrgeButton from '@/components/DelayUrgeButton';
 import { ThemedText } from '@/components/ThemedText';
 import { TipsSection } from '@/components/TipsSection';
+import FreeStateView from '@/components/FreeStateView';
 import { Colors } from '@/constants/Colors';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -25,13 +26,11 @@ type Status = 'delaying' | 'idle' | 'free';
 
 export default function HomeScreen() {
   const [status, setStatus] = useState<Status>('idle');
-  
-  // Separate animation values for countdown and free state
+  const [urgeId, setUrgeId] = useState<number | null>(null);
+
+  // Animation for countdown state
   const countdownFadeAnim = useRef(new Animated.Value(0)).current;
   const countdownSlideAnim = useRef(new Animated.Value(20)).current;
-  
-  const freeFadeAnim = useRef(new Animated.Value(0)).current;
-  const freeSlideAnim = useRef(new Animated.Value(20)).current;
 
   const textColor = useThemeColor({}, 'textPrimary');
   const {
@@ -39,7 +38,7 @@ export default function HomeScreen() {
     countdownText,
     startCountdown,
     resetCountdown,
-  } = useCountdown(120);
+  } = useCountdown(5);
 
   const handleDelayPress = () => {
     setStatus('delaying');
@@ -66,38 +65,20 @@ export default function HomeScreen() {
   useEffect(() => {
     if (isFinished) {
       setStatus('free');
-      
-      // Reset and start free state animations
-      freeFadeAnim.setValue(0);
-      freeSlideAnim.setValue(20);
-      
-      Animated.parallel([
-        Animated.timing(freeFadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(freeSlideAnim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-        })
-      ]).start();
     }
   }, [isFinished]);
 
   // don't touch this, it's need to be delaying and free.
   const showCountdown = useMemo(() => status === 'delaying' || status === 'free', [status]);
-  const showFreeState = useMemo(() => status === 'free', [status]);
+  const showFreeState = useMemo(() => status === 'free' && !!urgeId, [status, urgeId]);
   const showTips = useMemo(() => status === 'delaying', [status]);
 
   const resetAnimationsAndState = () => {
     setStatus('idle');
+    setUrgeId(null);
     resetCountdown();
     countdownFadeAnim.setValue(0);
     countdownSlideAnim.setValue(20);
-    freeFadeAnim.setValue(0);
-    freeSlideAnim.setValue(20);
   };
 
   const handlePressPeaceful = resetAnimationsAndState;
@@ -121,7 +102,10 @@ export default function HomeScreen() {
         {status === 'idle' && (
           <>
             <View style={styles.urgeBtnContainer}>
-              <DelayUrgeButton onPress={handleDelayPress} />
+              <DelayUrgeButton
+                onPress={handleDelayPress}
+                onSuccess={setUrgeId}
+              />
             </View>
 
             <View style={styles.timerContainer}>
@@ -157,37 +141,14 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {showFreeState && (
-          <Animated.View 
-            style={[
-              styles.freeContainer, 
-              { 
-                opacity: freeFadeAnim,
-                transform: [{ translateY: freeSlideAnim }]
-              }
-            ]}
-          >
-            <ThemedText type="subtitle" fontSize={30}>
-              You&apos;re free to act now
-            </ThemedText>
-            <View style={styles.buttonContainer}>
-              <Button onPress={handlePressPeaceful} fullWidth>
-                <ThemedText type="subtitle" fontSize={20}>
-                  ☀️ Peaceful Now
-                </ThemedText>
-              </Button>
-              <Button type="secondary" onPress={handlePressUrge} fullWidth>
-                <ThemedText type="subtitle" fontSize={20}>
-                  🌀 Urge&apos;s Still Here
-                </ThemedText>
-              </Button>
-              <Button type="danger" onPress={handlePressUrgeOver} fullWidth>
-                <ThemedText type="subtitle" fontSize={20} color={Colors.light.white}>
-                  😫 Urge Took Over
-                </ThemedText>
-              </Button>
-            </View>
-          </Animated.View>
+        {urgeId && (
+          <FreeStateView 
+            id={urgeId}
+            visible={showFreeState}
+            onPressPeaceful={handlePressPeaceful}
+            onPressUrge={handlePressUrge}
+            onPressUrgeOver={handlePressUrgeOver}
+          />
         )}
 
         {/* {status === 'idle' && (
@@ -281,16 +242,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     paddingTop: 20,
     alignItems: 'center',
-    gap: 20,
-  },
-  freeContainer: {
-    flex: 1,
-    paddingTop: 40,
-    alignItems: 'center',
-    gap: 40,
-  },
-  buttonContainer: {
-    display: 'flex',
     gap: 20,
   },
 }); 

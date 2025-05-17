@@ -40,8 +40,9 @@ export const AnimatedTextCycler: React.FC<AnimatedTextCyclerProps> = ({
   
   // Reset if texts array changes
   useEffect(() => {
-    setCurrentIndex(0);
-    indexRef.current = 0;
+    const i = Math.floor(Math.random() * texts.length);
+    setCurrentIndex(i);
+    indexRef.current = i;
   }, [texts]);
   
   // Handle the cycling of texts
@@ -59,8 +60,8 @@ export const AnimatedTextCycler: React.FC<AnimatedTextCyclerProps> = ({
       }).start(({ finished }) => {
         if (!finished || !isMountedRef.current) return;
         
-        // Advance to next index
-        indexRef.current++;
+        // Advance to random index
+        indexRef.current = Math.floor(Math.random() * texts.length);
         
         // Handle reaching the end
         if (indexRef.current >= texts.length) {

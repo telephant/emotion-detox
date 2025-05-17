@@ -39,7 +39,7 @@ export const TipsSection: React.FC<TipsSectionProps> = ({
     <View style={styles.container}>
       <AnimatedTextCycler
         texts={MINDFULNESS_TIPS}
-        interval={5000}
+        interval={60000}
         textStyle={styles.tipText}
         containerStyle={styles.tipContainer}
         repeat={true}

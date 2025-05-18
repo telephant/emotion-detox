@@ -24,6 +24,7 @@ model User {
   createTime DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamptz(6)
   updateTime DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamptz(6)
   urges      Urge[]   // Relation to urges
+  moods      Mood[]   // Relation to moods
 }
 
 model Urge {
@@ -37,4 +38,18 @@ model Urge {
   updateTime DateTime   @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamptz(6)
   
   // No onDelete because we want to keep urges if a user is deleted
+}
+
+model Mood {
+  id         String   @id @default(uuid())
+  text       String   // The mood description text
+  emoji      String?  // Optional emoji representation
+  date       DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamptz(6)
+  userId     String   // User who created this mood
+  user       User     @relation(fields: [userId], references: [id])
+  createTime DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamptz(6)
+  updateTime DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamptz(6)
+
+  @@index([userId])
+  @@index([date])
 }

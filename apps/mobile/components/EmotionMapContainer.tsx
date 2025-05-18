@@ -11,10 +11,12 @@ import { ThemedText } from './ThemedText';
 
 interface EmotionMapContainerProps {
   weeks?: number;
+  onCellPress?: () => void; // Callback to notify parent component to scroll
 }
 
 export const EmotionMapContainer = ({ 
-  weeks = 7
+  weeks = 7,
+  onCellPress
 }: EmotionMapContainerProps) => {
   const [emotionData, setEmotionData] = useState<EmotionData[]>([]);
   const [dailyBreakdown, setDailyBreakdown] = useState<Map<string, DailyStatusCounts>>(new Map());
@@ -69,6 +71,13 @@ export const EmotionMapContainer = ({
   
   const handleCellPress = (date: string, intensity: number) => {
     setSelectedDate(date);
+    
+    // Call the parent's onCellPress callback after a short delay to allow rendering
+    if (onCellPress) {
+      setTimeout(() => {
+        onCellPress();
+      }, 100);
+    }
   };
   
   // Render status breakdown for selected date

@@ -9,6 +9,8 @@ import {
   UrgeStatsResponse,
   UserResponse,
   EmotionMapResponse,
+  MoodResponse,
+  MoodsResponse,
 } from './responses';
 
 /**
@@ -28,6 +30,8 @@ export const ApiEndpoints = {
   REGISTER_DEVICE: '/users/register',
   UPDATE_URGE_STATUS: '/urges/update',
   EMOTION_MAP: '/urges/emotion-map',
+  MOODS: '/moods',
+  USER_MOODS: '/moods/user',
 } as const;
 
 /**
@@ -133,6 +137,75 @@ export interface GetEmotionMapEndpoint {
 }
 
 /**
+ * Get all moods endpoint definition
+ * GET /api/moods?userId=string
+ */
+export interface GetMoodsEndpoint {
+  method: typeof ApiMethods.GET;
+  params?: {
+    userId: string;
+  };
+  response: MoodsResponse;
+}
+
+/**
+ * Get mood by ID endpoint definition
+ * GET /api/moods/:moodId
+ */
+export interface GetMoodByIdEndpoint {
+  method: typeof ApiMethods.GET;
+  params: {
+    moodId: string;
+  };
+  response: MoodResponse;
+}
+
+/**
+ * Create mood endpoint definition
+ * POST /api/moods
+ */
+export interface CreateMoodEndpoint {
+  method: typeof ApiMethods.POST;
+  body: {
+    userId: string;
+    text: string;
+    emoji?: string;
+  };
+  response: MoodResponse;
+}
+
+/**
+ * Update mood endpoint definition
+ * PUT /api/moods/:moodId
+ */
+export interface UpdateMoodEndpoint {
+  method: typeof ApiMethods.PUT;
+  params: {
+    moodId: string;
+  };
+  body: {
+    text: string;
+    emoji?: string;
+  };
+  response: MoodResponse;
+}
+
+/**
+ * Delete mood endpoint definition
+ * DELETE /api/moods/:moodId
+ */
+export interface DeleteMoodEndpoint {
+  method: typeof ApiMethods.DELETE;
+  params: {
+    moodId: string;
+  };
+  response: {
+    success: boolean;
+    message: string;
+  };
+}
+
+/**
  * Complete API definition mapping endpoints to their types
  */
 export interface ApiDefinition {
@@ -144,4 +217,6 @@ export interface ApiDefinition {
   [ApiEndpoints.USERS]: GetUserEndpoint;
   [ApiEndpoints.UPDATE_URGE_STATUS]: UpdateUrgeStatusEndpoint;
   [ApiEndpoints.EMOTION_MAP]: GetEmotionMapEndpoint;
+  [ApiEndpoints.MOODS]: GetMoodByIdEndpoint | CreateMoodEndpoint | UpdateMoodEndpoint | DeleteMoodEndpoint;
+  [ApiEndpoints.USER_MOODS]: GetMoodsEndpoint;
 } 

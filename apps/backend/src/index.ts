@@ -3,6 +3,7 @@ import cors from 'cors';
 import healthRoutes from './routes/healthRoutes';
 import urgeRoutes from './routes/urgeRoutes';
 import userRoutes from './routes/userRoutes';
+import moodRoutes from './routes/moodRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/health', healthRoutes);
 app.use('/api/urges', urgeRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/moods', moodRoutes);
 
 // Start server
 app.listen(PORT, () => {

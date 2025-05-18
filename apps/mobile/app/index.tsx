@@ -1,23 +1,24 @@
+import { router } from 'expo-router';
 import React, {
   useEffect,
   useMemo,
-  useState,
   useRef,
+  useState,
 } from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  View,
   Animated,
+  SafeAreaView,
   ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-import Button from '@/components/base/Button';
 import DelayUrgeButton from '@/components/DelayUrgeButton';
+import { EmotionMapContainer } from '@/components/EmotionMapContainer';
+import { FreeStateView } from '@/components/FreeStateView';
 import { ThemedText } from '@/components/ThemedText';
 import { TipsSection } from '@/components/TipsSection';
-import FreeStateView from '@/components/FreeStateView';
-import EmotionMapContainer from '@/components/EmotionMapContainer';
 import { Colors } from '@/constants/Colors';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -33,6 +34,12 @@ export default function HomeScreen() {
   // Animation for countdown state
   const countdownFadeAnim = useRef(new Animated.Value(0)).current;
   const countdownSlideAnim = useRef(new Animated.Value(20)).current;
+  
+  // Add a ref for scrolling
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Create a ref to identify the emotion map section in the scroll view
+  const emotionMapRef = useRef<View>(null);
 
   const textColor = useThemeColor({}, 'textPrimary');
   const {
@@ -87,9 +94,44 @@ export default function HomeScreen() {
   const handlePressUrge = resetAnimationsAndState;
   const handlePressUrgeOver = resetAnimationsAndState;
 
+  const navigateToMoodList = () => {
+    router.push('/moods');
+  };
+  
+  // Function to scroll to the emotion map section
+  const scrollToEmotionMap = () => {
+    if (scrollViewRef.current && emotionMapRef.current) {
+      // Give time for any state changes to be reflected in the UI
+      setTimeout(() => {
+        emotionMapRef.current?.measureLayout(
+          // @ts-ignore - This is a known issue with the types, but the function exists
+          scrollViewRef.current,
+          (left, top) => {
+            scrollViewRef.current?.scrollTo({ y: top, animated: true });
+          },
+          () => console.error('Failed to measure layout')
+        );
+      }, 50);
+    }
+  };
+  
+  // Enhanced scroll function for emotion map details
+  const scrollToEmotionMapDetails = () => {
+    if (scrollViewRef.current) {
+      // Use a larger delay for the details section to ensure it's rendered
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 300);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.containerBody}>
           <View style={styles.header}>
             <ThemedText type="title">Still the Want</ThemedText>
@@ -156,10 +198,33 @@ export default function HomeScreen() {
           
           {/* Activity heatmap at the bottom */}
           {status === 'idle' && (
-            <EmotionMapContainer />
+            <View 
+              style={styles.mapSection}
+              ref={emotionMapRef}
+            >
+              <TouchableOpacity 
+                style={styles.mapHeaderButton}
+                onPress={scrollToEmotionMap}
+              >
+                <ThemedText type="subtitle" fontSize={18}>Activity Overview</ThemedText>
+                <FontAwesome name="chevron-down" size={16} color={Colors.light.textPrimary} />
+              </TouchableOpacity>
+              <EmotionMapContainer 
+                onCellPress={scrollToEmotionMapDetails}
+              />
+            </View>
           )}
         </View>
       </ScrollView>
+      
+      {/* Floating action button to navigate to mood list */}
+      <TouchableOpacity 
+        style={styles.floatingButton}
+        onPress={navigateToMoodList}
+        activeOpacity={0.8}
+      >
+        <FontAwesome name="smile-o" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -235,5 +300,31 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     alignItems: 'center',
     gap: 20,
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  mapSection: {
+    marginTop: 40,
+  },
+  mapHeaderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    marginBottom: 10,
   },
 }); 

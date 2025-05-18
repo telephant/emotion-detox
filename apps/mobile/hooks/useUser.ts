@@ -4,6 +4,7 @@ import { apiClient } from '../services/api';
 import { getUserId, storeUserId } from '../services/userStorage';
 import { User } from '@repo/shared-types';
 import { useAsync } from './useAsync';
+import { Alert } from 'react-native';
 
 export function useUser() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -12,6 +13,8 @@ export function useUser() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [storageInitialized, setStorageInitialized] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   // Use our async hook for the API calls
   const {
@@ -94,8 +97,11 @@ export function useUser() {
       try {
         // Try to get the user first
         try {
+          console.log('🔍 Looking up user by device ID:', deviceId);
           const userResponse = await getUserByDeviceId(deviceId);
+          
           if (isMounted) {
+            console.log('✅ User found by device ID');
             setUser(userResponse.data);
             const newUserId = userResponse.data.id;
             setUserId(newUserId);
@@ -103,15 +109,42 @@ export function useUser() {
             console.log('👤 User found:', newUserId);
           }
         } catch (getUserError) {
-          console.log('👤 User not found, registering device...');
-          // If the user doesn't exist, register the device
-          const registrationResponse = await registerDevice(deviceId);
-          if (isMounted) {
-            setUser(registrationResponse.data);
-            const newUserId = registrationResponse.data.id;
-            setUserId(newUserId);
-            await storeUserId(newUserId);
-            console.log('✅ Device registered, user ID:', newUserId);
+          console.log('👤 User not found, registering device...', getUserError);
+          
+          try {
+            console.log('🔄 Registering device with ID:', deviceId);
+            const registrationResponse = await registerDevice(deviceId);
+            
+            if (isMounted) {
+              console.log('✅ Device registration successful');
+              setUser(registrationResponse.data);
+              const newUserId = registrationResponse.data.id;
+              setUserId(newUserId);
+              await storeUserId(newUserId);
+              console.log('✅ Device registered, user ID:', newUserId);
+            }
+          } catch (registerError) {
+            console.error('❌ Failed to register device:', registerError);
+            
+            if (retryCount < MAX_RETRIES) {
+              console.log(`🔄 Retrying registration (${retryCount + 1}/${MAX_RETRIES})...`);
+              setRetryCount(prev => prev + 1);
+              // Will retry on next effect run due to retryCount change
+              if (isMounted) {
+                setError(new Error('Failed to register device. Retrying...'));
+              }
+              return;
+            } else {
+              // Max retries reached, show error
+              if (isMounted) {
+                setError(new Error('Failed to register your device after multiple attempts. Please restart the app.'));
+                Alert.alert(
+                  'Connection Error',
+                  'Could not connect to the server. Please check your internet connection and try again.',
+                  [{ text: 'OK' }]
+                );
+              }
+            }
           }
         }
         
@@ -123,6 +156,12 @@ export function useUser() {
         if (isMounted) {
           setError(error instanceof Error ? error : new Error('Failed to initialize user'));
           setIsLoading(false);
+          
+          Alert.alert(
+            'Error',
+            'There was a problem initializing the app. Please try again later.',
+            [{ text: 'OK' }]
+          );
         }
       }
     };
@@ -132,7 +171,7 @@ export function useUser() {
     return () => {
       isMounted = false;
     };
-  }, [deviceId, userId, storageInitialized, getUserByDeviceId, registerDevice]);
+  }, [deviceId, userId, storageInitialized, getUserByDeviceId, registerDevice, retryCount]);
 
   return {
     userId,
@@ -140,5 +179,13 @@ export function useUser() {
     deviceId,
     isLoading: isLoading || registerLoading || getUserLoading,
     error: error || registerError || getUserError,
+    // Create a method to retry registration
+    retryRegistration: () => {
+      if (retryCount < MAX_RETRIES) {
+        setRetryCount(prev => prev + 1);
+      } else {
+        setRetryCount(0); // Reset and try again
+      }
+    }
   };
 } 

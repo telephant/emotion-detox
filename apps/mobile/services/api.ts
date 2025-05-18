@@ -8,15 +8,45 @@ import {
   UrgesResponse,
   UrgeStatsResponse,
   UserResponse,
-  UserRegistrationData,
   UrgeStatusUpdateData,
   EmotionMapResponse,
+  MoodResponse,
+  MoodsResponse,
 } from '@repo/shared-types';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-// API base URL
-// In development, this should point to your local backend
-// In production, this should point to your deployed backend
-const API_URL = 'http://localhost:3000';
+// API base URL configuration
+// For iOS simulators, localhost refers to the Mac host
+// For Android emulators, we need to use 10.0.2.2 to reference the host
+// For web, use the current origin or localhost
+const DEV_API_URL_IOS = 'http://192.168.86.226:3000';
+const DEV_API_URL_ANDROID = 'http://192.168.86.226:3000';
+const DEV_API_URL_WEB = 'http://localhost:3000';
+const PROD_API_URL = 'https://emotion-detox-api.yourdomain.com'; // Replace with your production URL
+
+// Determine the API URL based on environment and platform
+function getApiUrl() {
+  // Check if we're in development or production
+  const isDev = !Constants.expoConfig?.extra?.isProduction;
+  
+  if (isDev) {
+    switch (Platform.OS) {
+      case 'web':
+        return DEV_API_URL_WEB;
+      case 'ios':
+        return DEV_API_URL_IOS;
+      default:
+        return DEV_API_URL_ANDROID;
+    }
+  } else {
+    return PROD_API_URL;
+  }
+}
+
+// Get the API URL
+const API_URL = getApiUrl();
+console.log('🌐 Using API URL:', API_URL, 'for platform:', Platform.OS);
 
 /**
  * API client for the Emotion Detox app
@@ -69,6 +99,46 @@ export const apiClient = {
     console.log('🔗 Building request with params:', params);
     
     return fetchApi(ApiEndpoints.EMOTION_MAP, { params });
+  },
+
+  /**
+   * Get moods for a user
+   */
+  getUserMoods: (userId: string): Promise<MoodsResponse> => {
+    console.log('🔍 getUserMoods called with userId:', userId);
+    return fetchApi(`${ApiEndpoints.USER_MOODS}/${userId}`);
+  },
+  
+  /**
+   * Get a specific mood
+   */
+  getMood: (moodId: string): Promise<MoodResponse> => {
+    console.log('🔍 getMood called with moodId:', moodId);
+    return fetchApi(`${ApiEndpoints.MOODS}/${moodId}`);
+  },
+  
+  /**
+   * Create a new mood
+   */
+  createMood: (data: { userId: string; text: string; emoji?: string }): Promise<MoodResponse> => {
+    console.log('🔍 createMood called with data:', data);
+    return fetchApi(ApiEndpoints.MOODS, { method: ApiMethods.POST, body: data });
+  },
+  
+  /**
+   * Update a mood
+   */
+  updateMood: (moodId: string, data: { text: string; emoji?: string }): Promise<MoodResponse> => {
+    console.log('🔍 updateMood called with moodId:', moodId, 'data:', data);
+    return fetchApi(`${ApiEndpoints.MOODS}/${moodId}`, { method: ApiMethods.PUT, body: data });
+  },
+  
+  /**
+   * Delete a mood
+   */
+  deleteMood: (moodId: string): Promise<{ success: boolean; message: string }> => {
+    console.log('🔍 deleteMood called with moodId:', moodId);
+    return fetchApi(`${ApiEndpoints.MOODS}/${moodId}`, { method: ApiMethods.DELETE });
   }
 };
 
@@ -101,13 +171,47 @@ async function fetchApi<T>(endpoint: string, options: { method?: string; params?
   // Make request
   try {
     console.log('🌐 Request options:', JSON.stringify(requestOptions));
+    
+    // Check for network connectivity first
     const response = await fetch(url, requestOptions);
-    const data = await response.json();
+    
+    // Try to parse response as JSON
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      console.warn('Non-JSON response:', text);
+      data = { message: 'Unexpected response format from server' };
+    }
+    
     console.log('📥 Response status:', response.status, 'Response data:', JSON.stringify(data).substring(0, 200));
     
-    if (!response.ok) throw new Error(data.message || 'API error');
+    // Handle HTTP error status codes
+    if (!response.ok) {
+      let errorMessage = data.message || `HTTP error ${response.status}`;
+      
+      // Add more context based on status code
+      if (response.status === 404) {
+        errorMessage = 'Resource not found: ' + errorMessage;
+      } else if (response.status === 500) {
+        errorMessage = 'Server error: ' + errorMessage;
+      } else if (response.status === 401 || response.status === 403) {
+        errorMessage = 'Authentication error: ' + errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
     return data as T;
   } catch (error) {
+    // Handle network errors separately
+    if (error instanceof TypeError && error.message.includes('Network request failed')) {
+      console.error('❌ Network request failed - is the server running?', error);
+      throw new Error('Could not connect to the server. Please check your internet connection or try again later.');
+    }
+    
     console.error('❌ API request failed:', error);
     throw error;
   }

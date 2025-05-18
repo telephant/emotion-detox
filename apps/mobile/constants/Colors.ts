@@ -11,6 +11,7 @@ export const Colors = {
     primary: '#96A595',
     secondary: '#E5DFD2',
     danger: '#E88F8F',
+    grey: '#CCCCCC',
 
     text: '#333333',
     textPrimary: '#333333',
@@ -33,6 +34,7 @@ export const Colors = {
     primary: '#96A595',
     secondary: '#E5DFD2',
     danger: '#E88F8F',
+    grey: '#666666',
 
     text: '#333333',
     textPrimary: '#333333',

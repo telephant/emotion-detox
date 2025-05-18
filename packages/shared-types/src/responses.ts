@@ -5,6 +5,7 @@ import {
   Urge,
   User,
   EmotionMapData,
+  Mood,
 } from './models';
 
 /**
@@ -63,4 +64,22 @@ export interface UrgeStatsResponse extends ApiResponse {
  */
 export interface EmotionMapResponse extends ApiResponse {
   data: EmotionMapData;
+}
+
+/**
+ * Response for a single mood
+ */
+export interface MoodResponse extends ApiResponse {
+  data: {
+    mood: Mood;
+  };
+}
+
+/**
+ * Response for multiple moods
+ */
+export interface MoodsResponse extends ApiResponse {
+  data: {
+    moods: Mood[];
+  };
 } 

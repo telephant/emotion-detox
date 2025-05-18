@@ -77,4 +77,16 @@ export interface DailyStatusCounts {
 export interface EmotionMapData {
   dailyData: DailyStatusCounts[];
   totalDays: number;
+}
+
+/**
+ * Mood model representation
+ */
+export interface Mood {
+  id: string;
+  text: string;
+  emoji: string | null;
+  userId: string;
+  date: string | Date;
+  updateTime?: string | Date;
 } 

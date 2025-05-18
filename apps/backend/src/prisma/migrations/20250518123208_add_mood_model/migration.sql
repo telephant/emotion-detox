@@ -1,0 +1,29 @@
+-- AlterTable
+ALTER TABLE "Urge" ALTER COLUMN "createTime" SET DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN "updateTime" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "createTime" SET DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN "updateTime" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- CreateTable
+CREATE TABLE "Mood" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "emoji" TEXT,
+    "date" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "createTime" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updateTime" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Mood_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "Mood_userId_idx" ON "Mood"("userId");
+
+-- CreateIndex
+CREATE INDEX "Mood_date_idx" ON "Mood"("date");
+
+-- AddForeignKey
+ALTER TABLE "Mood" ADD CONSTRAINT "Mood_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

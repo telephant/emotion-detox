@@ -1,13 +1,10 @@
 import { formatDate } from '@/utils/dateUtils';
+import { debugGrid, debugMap } from '@/utils/debug';
+import { EmotionData } from '@/utils/emotionUtils';
 import chroma from 'chroma-js';
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from './ThemedText';
-
-interface EmotionData {
-  date: string; // ISO date string
-  intensity: number; // 0-1 value representing emotion intensity
-}
 
 interface EmotionMapProps {
   data: EmotionData[];
@@ -18,7 +15,7 @@ interface EmotionMapProps {
 
 const DAYS_OF_WEEK = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-// Generate a color scale using chroma-js
+// Generate a color scale using chroma-js (for backward compatibility)
 const colorScale = chroma.scale([
   '#D2F2E3', // peaceful mint green (very low intensity)
   '#E5F5D3', // light mint green (low intensity)
@@ -41,28 +38,31 @@ export const EmotionMap = ({
 }: EmotionMapProps) => {
   // Debug data on mount
   useEffect(() => {
-    console.log('🌈 EmotionMap received data:', data.length > 0 ? data.slice(0, 3) : 'empty');
+    debugMap('EmotionMap received data: %o', data.length > 0 ? data.slice(0, 3) : 'empty');
   }, [data]);
   
   // Process data into a map for easy access
   const emotionMap = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { intensity: number, color: string }>();
     if (data && data.length > 0) {
       data.forEach(item => {
         if (item && item.date) {
           // Normalize date format by removing time part if present
           const dateKey = item.date.split('T')[0];
-          map.set(dateKey, item.intensity);
+          map.set(dateKey, { 
+            intensity: item.intensity,
+            color: item.color || '#E0E0E0', // Fallback color if not provided
+          });
         }
       });
     }
-    console.log('🗓️ Emotion map created with', map.size, 'dates');
+    debugMap('Emotion map created with %d dates', map.size);
     return map;
   }, [data]);
   
   // Generate dates for the grid
   const gridData = useMemo(() => {
-    console.log('📊 Generating grid data with weeks:', weeksToShow);
+    debugGrid('Generating grid data with weeks: %d', weeksToShow);
     // Today's date (the last day to show)
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset hours to compare dates properly
@@ -72,7 +72,7 @@ export const EmotionMap = ({
     
     // Create a new grid structure where each row represents a day of the week
     // and each column represents a specific date
-    const grid: Array<Array<{date: string, intensity: number, isValid: boolean}>> = Array(7).fill(null).map(() => []);
+    const grid: Array<Array<{date: string, intensity: number, color: string, isValid: boolean}>> = Array(7).fill(null).map(() => []);
     
     // Calculate total days to show (7 days per week * number of weeks)
     const totalDays = 7 * weeksToShow;
@@ -85,7 +85,7 @@ export const EmotionMap = ({
       
       // Use local date formatting instead of ISO string
       const dateString = formatDate(cellDate);
-      const intensity = emotionMap.get(dateString) || 0;
+      const cellData = emotionMap.get(dateString) || { intensity: 0, color: '#E0E0E0' };
       const isValid = cellDate <= today;
       
       // Figure out which row this date belongs to (based on day of week)
@@ -96,49 +96,46 @@ export const EmotionMap = ({
       // Push this date into the appropriate row
       grid[dayIndex].push({
         date: dateString,
-        intensity,
+        intensity: cellData.intensity,
+        color: cellData.color,
         isValid
       });
       
       // Debug log for today
       if (dateString === todayString) {
-        console.log(`✅ Today (${dateString}) is included in the grid at row ${dayIndex}!`);
+        debugGrid('Today (%s) is included in the grid at row %d!', dateString, dayIndex);
       }
     }
     
     // Verify today's date is in the grid
     const hasToday = grid.flat().some(cell => cell.date === todayString);
-    console.log(`Grid includes today (${todayString})? ${hasToday ? 'Yes' : 'No'}`);
+    debugGrid('Grid includes today (%s)? %s', todayString, hasToday ? 'Yes' : 'No');
     
     // Log total cell count
     const totalCells = grid.reduce((sum, row) => sum + row.length, 0);
-    console.log(`Total cells in grid: ${totalCells}, Expected: ${totalDays}`);
+    debugGrid('Total cells in grid: %d, Expected: %d', totalCells, totalDays);
     
     // Log dates with activity
     const activeDates = grid.flat().filter(cell => cell.intensity > 0).map(cell => cell.date);
-    console.log('🌡️ Dates with activity:', activeDates.length > 0 ? activeDates : 'none');
+    debugGrid('Dates with activity: %o', activeDates.length > 0 ? activeDates : 'none');
     
     return grid;
   }, [emotionMap, weeksToShow]);
 
-  // Get color for a cell based on intensity level
-  const getCellColor = (intensity: number, isValid: boolean) => {
-    if (!isValid) return 'transparent'; // Future dates are transparent\
-
-    if (intensity === 0) return '#E0E0E0'; // White for no activity
-
-    // if (intensity === 0) return '#E9F2E5'; // Very pale green for no activity
+  // Get color for a cell (using the new color property or fallback to intensity-based)
+  const getCellColor = (cell: { intensity: number, color: string, isValid: boolean }) => {
+    if (!cell.isValid) return 'transparent'; // Future dates are transparent
+    if (cell.intensity === 0) return '#E5E7EB'; // No data
     
-    // Only log cells with significant intensity to reduce noise
-    if (intensity > 0.2) {
-      console.log(`Cell intensity: ${intensity.toFixed(2)} → color index: ${Math.min(Math.floor(intensity * 23), 23)}`);
+    // Use the color property generated by the emotion algorithm
+    if (cell.color) {
+      return cell.color;
     }
     
-    // Map intensity to color scale index (ensure it's in 0-1 range)
-    const normalizedIntensity = Math.max(0, Math.min(1, intensity));
+    // Fallback to intensity-based coloring (for backward compatibility)
+    debugMap('Using fallback color for intensity: %f', cell.intensity);
+    const normalizedIntensity = Math.max(0, Math.min(1, cell.intensity));
     const colorIndex = Math.min(Math.floor(normalizedIntensity * 23), 23);
-    
-    // Return color from scale
     return colorScale[colorIndex];
   };
 
@@ -167,7 +164,7 @@ export const EmotionMap = ({
                   key={cell.date}
                   style={[
                     styles.cell,
-                    { backgroundColor: getCellColor(cell.intensity, cell.isValid) }
+                    { backgroundColor: getCellColor(cell) }
                   ]}
                   onPress={() => cell.isValid && onCellPress?.(cell.date, cell.intensity)}
                   activeOpacity={cell.isValid && onCellPress ? 0.7 : 1}

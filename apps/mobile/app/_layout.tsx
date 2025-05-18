@@ -1,3 +1,5 @@
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { useUser } from '@/hooks/useUser';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -5,9 +7,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useUser } from '@/hooks/useUser';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -43,7 +42,7 @@ export default function RootLayout() {
     prepare();
   }, [loaded, userLoading]);
 
-  // Don't render anything until everything is ready
+  // // Don't render anything until everything is ready
   if (!appIsReady) {
     return null;
   }
@@ -52,12 +51,14 @@ export default function RootLayout() {
   // For now we'll just continue to the app, possibly with offline functionality
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </>
   );
 }

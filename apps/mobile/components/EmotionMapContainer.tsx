@@ -1,29 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import EmotionMap from './EmotionMap';
-import { ThemedText } from './ThemedText';
-import { apiClient } from '@/services/api';
 import { Colors } from '@/constants/Colors';
 import { useAsync } from '@/hooks/useAsync';
-import { Urge, UrgeStatus, DailyStatusCounts } from '@repo/shared-types';
+import { apiClient } from '@/services/api';
 import { getUserId } from '@/services/userStorage';
+import { EmotionData, processEmotionData } from '@/utils/emotionUtils';
+import { DailyStatusCounts, UrgeStatus } from '@repo/shared-types';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { EmotionMap } from './EmotionMap';
+import { ThemedText } from './ThemedText';
 
 interface EmotionMapContainerProps {
   weeks?: number;
 }
 
-// Calculate weights for different urge statuses
-const STATUS_WEIGHTS = {
-  [UrgeStatus.PEACEFUL]: 0.1,  // Peaceful is a positive outcome (very low intensity)
-  [UrgeStatus.PENDING]: 0.3,   // Pending is a neutral outcome (low-medium intensity)
-  [UrgeStatus.PRESENT]: 0.7,   // Still present is a challenging outcome (high intensity)
-  [UrgeStatus.OVERCOME]: 1.0,  // Overcome is a negative outcome (very high intensity)
-};
-
 export const EmotionMapContainer = ({ 
   weeks = 7
 }: EmotionMapContainerProps) => {
-  const [emotionData, setEmotionData] = useState<{ date: string; intensity: number }[]>([]);
+  const [emotionData, setEmotionData] = useState<EmotionData[]>([]);
   const [dailyBreakdown, setDailyBreakdown] = useState<Map<string, DailyStatusCounts>>(new Map());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -56,7 +49,7 @@ export const EmotionMapContainer = ({
         const result = await execute(userId, weeks);
         if (result?.data?.dailyData) {
           // Process the data for the emotion map
-          const processedData = processEmotionMapData(result.data.dailyData);
+          const processedData = processEmotionData(result.data.dailyData);
           setEmotionData(processedData);
           
           // Create a map for quick date lookup
@@ -73,51 +66,6 @@ export const EmotionMapContainer = ({
     
     fetchData();
   }, [userId, weeks, execute, isInitializing]);
-  
-  // Process the daily data to calculate emotion intensity
-  const processEmotionMapData = (dailyData: DailyStatusCounts[]) => {
-    console.log("Processing daily data for emotion map:", dailyData.length, "days");
-    
-    return dailyData.map(day => {
-      // Calculate weighted average of intensities
-      let totalWeight = 0;
-      let weightedSum = 0;
-      
-      // Log the counts for this day
-      console.log(`Day ${day.date} counts:`, JSON.stringify(day.counts));
-      
-      Object.entries(STATUS_WEIGHTS).forEach(([status, weight]) => {
-        if (day.counts[status] > 0) {
-          const statusWeight = day.counts[status] * weight;
-          weightedSum += statusWeight;
-          totalWeight += day.counts[status];
-          console.log(`Status ${status}: count=${day.counts[status]}, weight=${weight}, contribution=${statusWeight}`);
-        }
-      });
-      
-      // Calculate final intensity
-      let intensity = 0;
-      if (totalWeight > 0) {
-        // Base intensity from weighted status average
-        intensity = weightedSum / totalWeight;
-        
-        // Apply adjustment based on total count
-        // More urges on a day = slightly higher intensity
-        const countFactor = Math.min(day.counts.total / 5, 1); // Cap at 5 urges
-        
-        // Blend the status-based intensity with the count factor
-        // Increase the weight of the status to make colors more pronounced
-        intensity = intensity * 0.9 + countFactor * 0.1; // 90% status-based, 10% count-based
-        
-        console.log(`Final intensity for ${day.date}: ${intensity.toFixed(3)} (base: ${(weightedSum / totalWeight).toFixed(3)}, count factor: ${countFactor.toFixed(3)})`);
-      }
-      
-      return {
-        date: day.date,
-        intensity,
-      };
-    });
-  };
   
   const handleCellPress = (date: string, intensity: number) => {
     setSelectedDate(date);

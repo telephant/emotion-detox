@@ -1,7 +1,11 @@
 /**
  * API response types
  */
-import { Urge, User } from './models';
+import {
+  Urge,
+  User,
+  EmotionMapData,
+} from './models';
 
 /**
  * Base response interface 
@@ -52,4 +56,11 @@ export interface UrgeStatsResponse extends ApiResponse {
     total: number;
     recent: Urge[];
   };
+}
+
+/**
+ * Response for emotion map data
+ */
+export interface EmotionMapResponse extends ApiResponse {
+  data: EmotionMapData;
 } 

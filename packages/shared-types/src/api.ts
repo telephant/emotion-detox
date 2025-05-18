@@ -2,7 +2,14 @@
  * API endpoint and request definitions
  */
 import { UrgeData, UrgeStatus, UserRegistrationData } from './models';
-import { HealthResponse, SingleUrgeResponse, UrgesResponse, UrgeStatsResponse, UserResponse } from './responses';
+import { 
+  HealthResponse,
+  SingleUrgeResponse,
+  UrgesResponse,
+  UrgeStatsResponse,
+  UserResponse,
+  EmotionMapResponse,
+} from './responses';
 
 /**
  * API base path
@@ -20,6 +27,7 @@ export const ApiEndpoints = {
   USERS: '/users',
   REGISTER_DEVICE: '/users/register',
   UPDATE_URGE_STATUS: '/urges/update',
+  EMOTION_MAP: '/urges/emotion-map',
 } as const;
 
 /**
@@ -112,6 +120,19 @@ export interface UpdateUrgeStatusEndpoint {
 }
 
 /**
+ * Get emotion map data endpoint definition
+ * GET /api/urges/emotion-map?userId=optional&weeks=optional
+ */
+export interface GetEmotionMapEndpoint {
+  method: typeof ApiMethods.GET;
+  params?: {
+    userId?: string;
+    weeks?: number;
+  };
+  response: EmotionMapResponse;
+}
+
+/**
  * Complete API definition mapping endpoints to their types
  */
 export interface ApiDefinition {
@@ -122,4 +143,5 @@ export interface ApiDefinition {
   [ApiEndpoints.REGISTER_DEVICE]: RegisterDeviceEndpoint;
   [ApiEndpoints.USERS]: GetUserEndpoint;
   [ApiEndpoints.UPDATE_URGE_STATUS]: UpdateUrgeStatusEndpoint;
+  [ApiEndpoints.EMOTION_MAP]: GetEmotionMapEndpoint;
 } 

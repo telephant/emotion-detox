@@ -11,8 +11,29 @@ app.use('/api/health', healthRoutes);
 app.use('/api/urges', urgeRoutes);
 
 describe('API Endpoint Tests', () => {
-  // Close db connection when done
+  // Test user ID
+  let testUserId: string;
+
+  // Setup test user before all tests
+  beforeAll(async () => {
+    // Create a test user with a unique device ID
+    const testUser = await prisma.user.create({
+      data: {
+        deviceId: 'api-test-device-' + Date.now(),
+      }
+    });
+    testUserId = testUser.id;
+  });
+
+  // Close db connection and cleanup when done
   afterAll(async () => {
+    // Delete test user and any associated urges
+    await prisma.urge.deleteMany({
+      where: { userId: testUserId }
+    });
+    await prisma.user.delete({
+      where: { id: testUserId }
+    });
     await prisma.$disconnect();
   });
 
@@ -26,18 +47,10 @@ describe('API Endpoint Tests', () => {
   });
 
   describe('Urges Endpoints', () => {
-    // Clean up the test data after tests
-    afterEach(async () => {
-      // Delete test data - be careful with this in a production db!
-      await prisma.urge.deleteMany({
-        where: { userId: 'test-user' }
-      });
-    });
-
     it('should delay an urge and increment the count', async () => {
       const urgeData = {
         type: 'test-urge-type',
-        userId: 'test-user'
+        userId: testUserId
       };
 
       const response = await request(app)
@@ -64,7 +77,7 @@ describe('API Endpoint Tests', () => {
       // First, create a test urge
       const urgeData = {
         type: 'get-test-urge',
-        userId: 'test-user'
+        userId: testUserId
       };
       
       await request(app)
@@ -74,7 +87,7 @@ describe('API Endpoint Tests', () => {
       // Now test the GET endpoint
       const response = await request(app)
         .get('/api/urges')
-        .query({ userId: 'test-user' });
+        .query({ userId: testUserId });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);

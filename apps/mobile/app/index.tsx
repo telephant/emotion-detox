@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
   Animated,
+  ScrollView,
 } from 'react-native';
 
 import Button from '@/components/base/Button';
@@ -16,6 +17,7 @@ import DelayUrgeButton from '@/components/DelayUrgeButton';
 import { ThemedText } from '@/components/ThemedText';
 import { TipsSection } from '@/components/TipsSection';
 import FreeStateView from '@/components/FreeStateView';
+import EmotionMapContainer from '@/components/EmotionMapContainer';
 import { Colors } from '@/constants/Colors';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -87,90 +89,77 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.containerBody}>
-        <View style={styles.header}>
-          <ThemedText type="title">Still the Want</ThemedText>
-          <ThemedText
-            type="subtitle"
-            color={Colors.light.primary}
-            fontWeight="200"
-          >
-            Pause. Feel. Let go.
-          </ThemedText>
-        </View>
-
-        {status === 'idle' && (
-          <>
-            <View style={styles.urgeBtnContainer}>
-              <DelayUrgeButton
-                onPress={handleDelayPress}
-                onSuccess={setUrgeId}
-              />
-            </View>
-
-            <View style={styles.timerContainer}>
-              <ThemedText type="subtitle" fontSize={20}>
-                🧘 Taking a moment...
-              </ThemedText>
-            </View>
-          </>
-        )}
-
-        {showCountdown && (
-          <Animated.View 
-            style={[
-              styles.urgeContainer, 
-              { 
-                opacity: countdownFadeAnim,
-                transform: [{ translateY: countdownSlideAnim }]
-              }
-            ]}
-          >
-            <FontAwesome name="hourglass-half" size={100} color={textColor} />
-            <ThemedText type="subtitle" fontSize={40}>{countdownText}</ThemedText>
-            <ThemedText type="subtitle" fontSize={20}>
-              Take 2 minutes before acting
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.containerBody}>
+          <View style={styles.header}>
+            <ThemedText type="title">Still the Want</ThemedText>
+            <ThemedText
+              type="subtitle"
+              color={Colors.light.primary}
+              fontWeight="200"
+            >
+              Pause. Feel. Let go.
             </ThemedText>
-          </Animated.View>
-        )}
-
-        {/* Show mindfulness tips separately from the animated containers */}
-        {showTips && (
-          <View style={styles.tipsContainer}>
-            <TipsSection />
           </View>
-        )}
 
-        {urgeId && (
-          <FreeStateView 
-            id={urgeId}
-            visible={showFreeState}
-            onPressPeaceful={handlePressPeaceful}
-            onPressUrge={handlePressUrge}
-            onPressUrgeOver={handlePressUrgeOver}
-          />
-        )}
+          {status === 'idle' && (
+            <>
+              <View style={styles.urgeBtnContainer}>
+                <DelayUrgeButton
+                  onPress={handleDelayPress}
+                  onSuccess={setUrgeId}
+                />
+              </View>
 
-        {/* {status === 'idle' && (
-          <View style={styles.moodLogSection}>
-            <View style={styles.moodLogHeader}>
-              <Text style={styles.sectionTitle}>Mood Log</Text>
-              <TouchableOpacity
-                style={styles.addMoodButton}
-              >
-                <FontAwesome name="plus" size={18} color={textColor} />
-              </TouchableOpacity>
+              <View style={styles.timerContainer}>
+                <ThemedText type="subtitle" fontSize={20}>
+                  🧘 Taking a moment...
+                </ThemedText>
+              </View>
+            </>
+          )}
+
+          {showCountdown && (
+            <Animated.View 
+              style={[
+                styles.urgeContainer, 
+                { 
+                  opacity: countdownFadeAnim,
+                  transform: [{ translateY: countdownSlideAnim }]
+                }
+              ]}
+            >
+              <FontAwesome name="hourglass-half" size={100} color={textColor} />
+              <ThemedText type="subtitle" fontSize={40}>{countdownText}</ThemedText>
+              <ThemedText type="subtitle" fontSize={20}>
+                Take 2 minutes before acting
+              </ThemedText>
+            </Animated.View>
+          )}
+
+          {/* Show mindfulness tips separately from the animated containers */}
+          {showTips && (
+            <View style={styles.tipsContainer}>
+              <TipsSection />
             </View>
+          )}
 
-            <MoodEntry
-              emoji="😊"
-              mood="Lonely"
-              date="May 5, 10:34 PM"
-              description="Felt like I wanted to reach out..."
+          {urgeId && (
+            <FreeStateView 
+              id={urgeId}
+              visible={showFreeState}
+              onPressPeaceful={handlePressPeaceful}
+              onPressUrge={handlePressUrge}
+              onPressUrgeOver={handlePressUrgeOver}
             />
-          </View>
-        )} */}
-      </View>
+          )}
+          
+          {/* Activity heatmap at the bottom */}
+          {status === 'idle' && (
+            <EmotionMapContainer />
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -179,6 +168,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   containerBody: {
     flex: 1,

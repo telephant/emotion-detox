@@ -18,6 +18,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@repo/shared-types": "workspace:*",
+    "chroma-js": "^3.1.2",
     "expo": "~53.0.9",
     "expo-application": "^6.1.4",
     "expo-blur": "~14.1.4",
@@ -48,6 +49,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/plugin-proposal-decorators": "^7.27.1",
+    "@types/chroma-js": "^3.1.1",
     "@types/react": "~19.0.10",
     "@types/uuid": "^10.0.0",
     "eslint": "^9.25.0",

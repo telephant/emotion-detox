@@ -10,6 +10,7 @@ import {
   UserResponse,
   UserRegistrationData,
   UrgeStatusUpdateData,
+  EmotionMapResponse,
 } from '@repo/shared-types';
 
 // API base URL
@@ -54,7 +55,21 @@ export const apiClient = {
   /**
    * Update the status of an urge
    */
-  updateUrgeStatus: (urgeData: UrgeStatusUpdateData): Promise<SingleUrgeResponse> => fetchApi(ApiEndpoints.UPDATE_URGE_STATUS, { method: ApiMethods.POST, body: urgeData })
+  updateUrgeStatus: (urgeData: UrgeStatusUpdateData): Promise<SingleUrgeResponse> => fetchApi(ApiEndpoints.UPDATE_URGE_STATUS, { method: ApiMethods.POST, body: urgeData }),
+
+  /**
+   * Get emotion map data for visualization
+   */
+  getEmotionMapData: (userId?: string, weeks?: number): Promise<EmotionMapResponse> => {
+    const params: Record<string, string | undefined> = {};
+    if (userId) params.userId = userId;
+    if (weeks) params.weeks = weeks.toString();
+    
+    console.log('🔍 getEmotionMapData called with userId:', userId, 'weeks:', weeks);
+    console.log('🔗 Building request with params:', params);
+    
+    return fetchApi(ApiEndpoints.EMOTION_MAP, { params });
+  }
 };
 
 /**
@@ -72,6 +87,8 @@ async function fetchApi<T>(endpoint: string, options: { method?: string; params?
     const queryString = queryParams.toString();
     if (queryString) url += `?${queryString}`;
   }
+  
+  console.log('📡 Fetching from URL:', url);
 
   // Request options
   const requestOptions: RequestInit = {
@@ -80,15 +97,18 @@ async function fetchApi<T>(endpoint: string, options: { method?: string; params?
   };
   
   if (body) requestOptions.body = JSON.stringify(body);
-
+  
   // Make request
   try {
+    console.log('🌐 Request options:', JSON.stringify(requestOptions));
     const response = await fetch(url, requestOptions);
     const data = await response.json();
+    console.log('📥 Response status:', response.status, 'Response data:', JSON.stringify(data).substring(0, 200));
+    
     if (!response.ok) throw new Error(data.message || 'API error');
     return data as T;
   } catch (error) {
-    console.error('API request failed:', error);
+    console.error('❌ API request failed:', error);
     throw error;
   }
 } 

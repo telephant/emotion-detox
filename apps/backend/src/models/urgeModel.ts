@@ -3,6 +3,8 @@ import {
   UrgeData,
   UrgeStatus,
   UrgeStatusUpdateData,
+  EmotionMapData,
+  DailyStatusCounts,
 } from '@repo/shared-types';
 import { z } from 'zod';
 import prisma from '../config/database';
@@ -135,5 +137,86 @@ export const UrgeModel = {
       console.error('Error getting urge stats:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get emotion map data with status counts by date
+   */
+  async getEmotionMapData(userId: string, weeks: number = 7): Promise<EmotionMapData> {
+    try {
+      // Calculate the date range
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - (weeks * 7)); // Go back X weeks
+      
+      // Get all urges in the date range for the specified user
+      const urges = await prisma.urge.findMany({
+        where: {
+          userId, // userId is now required
+          createTime: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: {
+          createTime: 'asc',
+        },
+      });
+      
+      // Group urges by date and status
+      const dateMap = new Map<string, {
+        [UrgeStatus.PEACEFUL]: number;
+        [UrgeStatus.PRESENT]: number;
+        [UrgeStatus.OVERCOME]: number;
+        [UrgeStatus.PENDING]: number;
+        total: number;
+        [key: string]: number;
+      }>();
+      
+      urges.forEach(urge => {
+        const date = new Date(urge.createTime);
+        // Cast to string explicitly to resolve undefined issue
+        const dateString = date.toISOString().split('T')[0] as string; // YYYY-MM-DD
+        
+        if (!dateMap.has(dateString)) {
+          dateMap.set(dateString, {
+            [UrgeStatus.PEACEFUL]: 0,
+            [UrgeStatus.PRESENT]: 0,
+            [UrgeStatus.OVERCOME]: 0,
+            [UrgeStatus.PENDING]: 0,
+            total: 0,
+          });
+        }
+        
+        // Non-null assertion is safe here because we just checked and set if not exists
+        const statusCounts = dateMap.get(dateString)!;
+        
+        // Increment the specific status count - using non-null assertion since we know it can't be undefined here
+        if (urge.status && Object.values(UrgeStatus).includes(urge.status as UrgeStatus)) {
+          statusCounts[urge.status!] += 1;
+        } else {
+          statusCounts[UrgeStatus.PENDING] += 1;
+        }
+        
+        // Increment total count
+        statusCounts.total += 1;
+      });
+      
+      // Convert map to array of daily data
+      const dailyData: DailyStatusCounts[] = Array.from(dateMap.entries()).map(([date, counts]) => ({
+        date,
+        counts: {
+          ...counts
+        },
+      }));
+      
+      return {
+        dailyData,
+        totalDays: dailyData.length,
+      };
+    } catch (error) {
+      console.error('Error getting emotion map data:', error);
+      throw error;
+    }
   }
-}; 
+};

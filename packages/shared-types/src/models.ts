@@ -47,7 +47,7 @@ export interface Urge {
  */
 export interface UrgeData {
   type: string;
-  userId?: string;
+  userId: string;
   status?: UrgeStatus; // Optional since PENDING is the default
 }
 
@@ -58,4 +58,23 @@ export interface UrgeStatusUpdateData {
   id: number;
   status: UrgeStatus;
   userId?: string;
+}
+
+/**
+ * Daily status counts for emotion map visualization
+ */
+export interface DailyStatusCounts {
+  date: string; // ISO date string (YYYY-MM-DD)
+  counts: {
+    [key: string]: number;
+    total: number;
+  };
+}
+
+/**
+ * Emotion map data for visualization
+ */
+export interface EmotionMapData {
+  dailyData: DailyStatusCounts[];
+  totalDays: number;
 } 

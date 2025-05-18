@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import Button from '@/components/base/Button';
 import { ThemedText } from '@/components/ThemedText';
@@ -6,6 +6,7 @@ import { Colors } from '@/constants/Colors';
 import { useAsync } from '@/hooks/useAsync';
 import { apiClient } from '@/services/api';
 import { UrgeStatus } from '@repo/shared-types';
+import { getUserId } from '@/services/userStorage';
 
 interface FreeStateViewProps {
   id: number;
@@ -24,12 +25,23 @@ export const FreeStateView = ({
 }: FreeStateViewProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+  const [userId, setUserId] = useState<string | null>(null);
 
   const {
     execute,
     loading,
     error,
   } = useAsync(apiClient.updateUrgeStatus, false);
+  
+  // Fetch user ID on component mount
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const id = await getUserId();
+      setUserId(id);
+    };
+    
+    fetchUserId();
+  }, []);
   
   useEffect(() => {
     if (visible) {
@@ -53,8 +65,14 @@ export const FreeStateView = ({
   }, [visible]);
 
   const handlePressPeaceful = () => {
+    if (!userId) {
+      console.error('Cannot update urge - no user ID available');
+      return;
+    }
+    
     execute({
       id,
+      userId,
       status: UrgeStatus.PEACEFUL,
     });
     onPressPeaceful();
@@ -62,8 +80,14 @@ export const FreeStateView = ({
   }
 
   const handlePressUrge = () => {
+    if (!userId) {
+      console.error('Cannot update urge - no user ID available');
+      return;
+    }
+    
     execute({
       id,
+      userId,
       status: UrgeStatus.PRESENT,
     });
     onPressUrge();
@@ -71,15 +95,21 @@ export const FreeStateView = ({
   }
 
   const handlePressUrgeOver = () => {
+    if (!userId) {
+      console.error('Cannot update urge - no user ID available');
+      return;
+    }
+    
     execute({
       id,
+      userId,
       status: UrgeStatus.OVERCOME,
     });
     onPressUrgeOver();
     slideAnim.setValue(20);
   }
 
-  if (!visible) return null;
+  if (!visible || !userId) return null;
 
   return (
     <Animated.View 

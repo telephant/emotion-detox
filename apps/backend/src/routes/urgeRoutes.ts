@@ -9,5 +9,6 @@ router.post('/delay', UrgeController.delayUrge);
 router.post('/update', UrgeController.updateUrgeStatus);
 router.get('/', UrgeController.getUrges);
 router.get('/stats', UrgeController.getUrgeStats);
+router.get('/emotion-map', UrgeController.getEmotionMapData);
 
 export default router; 

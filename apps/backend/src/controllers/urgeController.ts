@@ -1,8 +1,17 @@
+import { UrgeData, UrgeStatusUpdateData } from '@repo/shared-types';
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import { UrgeModel, urgeSchema, urgeStatusUpdateSchema } from '../models/urgeModel';
 import { sendError, sendSuccess } from '../utils/responseFormatter';
-import { z } from 'zod';
-import { UrgeData, UrgeStatusUpdateData } from '@repo/shared-types';
+
+// Request validation schemas
+const userIdParam = z.object({
+  userId: z.string({ required_error: "userId is required" })
+});
+
+const weeksParam = z.object({
+  weeks: z.string().optional().transform(val => val ? parseInt(val, 10) : 7)
+});
 
 export const UrgeController = {
   /**
@@ -22,10 +31,10 @@ export const UrgeController = {
       console.error('Error processing urge action:', error);
       
       if (error instanceof z.ZodError) {
-        return sendError(res, error.errors);
+        return sendError(res, error.errors, 400);
       }
       
-      return sendError(res, 'Invalid request');
+      return sendError(res, 'Invalid request', 400);
     }
   },
 
@@ -45,14 +54,14 @@ export const UrgeController = {
       console.error('Error updating urge status:', error);
       
       if (error instanceof z.ZodError) {
-        return sendError(res, error.errors);
+        return sendError(res, error.errors, 400);
       }
       
       if (error instanceof Error) {
-        return sendError(res, error.message);
+        return sendError(res, error.message, 400);
       }
       
-      return sendError(res, 'Invalid request');
+      return sendError(res, 'Invalid request', 400);
     }
   },
 
@@ -61,12 +70,19 @@ export const UrgeController = {
    */
   async getUrges(req: Request, res: Response) {
     try {
-      const userId = req.query.userId as string | undefined;
+      // Validate userId param is present
+      const { userId } = userIdParam.parse(req.query);
+      
       const urges = await UrgeModel.getUrges(userId);
       
       return sendSuccess(res, { urges });
     } catch (error) {
       console.error('Error fetching urges:', error);
+      
+      if (error instanceof z.ZodError) {
+        return sendError(res, error.errors, 400);
+      }
+      
       return sendError(res, 'Server error', 500);
     }
   },
@@ -76,12 +92,42 @@ export const UrgeController = {
    */
   async getUrgeStats(req: Request, res: Response) {
     try {
-      const userId = req.query.userId as string | undefined;
+      // Validate userId param is present
+      const { userId } = userIdParam.parse(req.query);
+      
       const stats = await UrgeModel.getUrgeStats(userId);
       
       return sendSuccess(res, stats);
     } catch (error) {
       console.error('Error fetching urge statistics:', error);
+      
+      if (error instanceof z.ZodError) {
+        return sendError(res, error.errors, 400);
+      }
+      
+      return sendError(res, 'Server error', 500);
+    }
+  },
+
+  /**
+   * Get emotion map data with status counts by date
+   */
+  async getEmotionMapData(req: Request, res: Response) {
+    try {
+      // Validate required userId and optional weeks params
+      const { userId } = userIdParam.parse(req.query);
+      const { weeks } = weeksParam.parse(req.query);
+      
+      const emotionData = await UrgeModel.getEmotionMapData(userId, weeks);
+      
+      return sendSuccess(res, emotionData);
+    } catch (error) {
+      console.error('Error fetching emotion map data:', error);
+      
+      if (error instanceof z.ZodError) {
+        return sendError(res, error.errors, 400);
+      }
+      
       return sendError(res, 'Server error', 500);
     }
   }

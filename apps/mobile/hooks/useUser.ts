@@ -34,6 +34,7 @@ export function useUser() {
       try {
         // Try to get the userId first
         const storedUserId = await getUserId();
+        console.log('📱 getUserId() returned:', storedUserId);
         
         // Always get the device ID as well
         const id = await getDeviceId();
@@ -42,6 +43,8 @@ export function useUser() {
           if (storedUserId) {
             setUserId(storedUserId);
             console.log('🔄 Using stored user ID:', storedUserId);
+          } else {
+            console.log('⚠️ No stored user ID found');
           }
           
           setDeviceId(id);
@@ -49,7 +52,7 @@ export function useUser() {
           setStorageInitialized(true);
         }
       } catch (error) {
-        console.error('Error getting initial data:', error);
+        console.error('❌ Error getting initial data:', error);
         if (isMounted) {
           setError(error instanceof Error ? error : new Error('Failed to get initial data'));
           setIsLoading(false);
@@ -58,6 +61,7 @@ export function useUser() {
       }
     };
 
+    console.log('🔄 Initializing user data from storage');
     initFromStorage();
 
     return () => {

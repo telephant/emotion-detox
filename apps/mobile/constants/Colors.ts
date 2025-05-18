@@ -14,7 +14,6 @@ export const Colors = {
 
     text: '#333333',
     textPrimary: '#333333',
-  
     textSecondary: '#666666',
     background: '#F8F7F4',
     tint: tintColorLight,
@@ -22,6 +21,13 @@ export const Colors = {
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
     white: '#FFFFFF',
+    
+    // Activity heatmap colors
+    inactive: '#EBEDF0',
+    lowActivity: '#C6E48B',
+    mediumActivity: '#7BC96F',
+    highActivity: '#239A3B',
+    veryHighActivity: '#196127',
   },
   dark: {
     primary: '#96A595',
@@ -37,5 +43,12 @@ export const Colors = {
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
     white: '#FFFFFF',
+    
+    // Activity heatmap colors 
+    inactive: '#161B22',
+    lowActivity: '#0E4429',
+    mediumActivity: '#006D32',
+    highActivity: '#26A641',
+    veryHighActivity: '#39D353',
   },
 };

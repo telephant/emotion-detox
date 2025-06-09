@@ -1,9 +1,9 @@
-import { createRouter } from '../utils/routerUtils';
+import { Router, IRouter } from 'express';
 import { HealthController } from '../controllers/healthController';
 
-const { router, get } = createRouter();
+const router: IRouter = Router();
 
 // Health check endpoint
-get('/', HealthController.healthCheck);
+router.get('/', HealthController.healthCheck as any);
 
 export default router; 

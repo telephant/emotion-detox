@@ -1,0 +1,1292 @@
+{
+  "/Users/telephant/self/emotion-detox/apps/backend/serverless.yml": {
+    "versionFramework": "4.15.1",
+    "servicePath": "/Users/telephant/self/emotion-detox/apps/backend/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "org": "telephant",
+      "service": "emotion-detox-backend",
+      "app": "emotion-detox-backend-app",
+      "plugins": [
+        "serverless-offline",
+        "serverless-dotenv-plugin"
+      ],
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs20.x",
+        "stage": "dev",
+        "region": "us-east-1",
+        "environment": {
+          "NODE_ENV": "development",
+          "DATABASE_URL": "postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem"
+        },
+        "iam": {
+          "role": {
+            "statements": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "rds-data:*"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogGroup",
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "iot:*"
+                ],
+                "Resource": "*"
+              }
+            ]
+          }
+        },
+        "versionFunctions": true,
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "ApiLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/emotion-detox-backend-dev-api"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "emotion-detox-backend",
+                          "dev",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/emotion-detox-backend-dev*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/emotion-detox-backend-dev*:*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "rds-data:*"
+                          ],
+                          "Resource": "*"
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": "*"
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "iot:*"
+                          ],
+                          "Resource": "*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "emotion-detox-backend",
+                      "dev",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            },
+            "ApiLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+                  "S3Key": "serverless/emotion-detox-backend/dev/1748862105618-2025-06-02T11:01:45.618Z/emotion-detox-backend.zip"
+                },
+                "Handler": "index.handler",
+                "Runtime": "nodejs20.x",
+                "FunctionName": "emotion-detox-backend-dev-api",
+                "MemorySize": 512,
+                "Timeout": 30,
+                "Environment": {
+                  "Variables": {
+                    "NODE_ENV": "production",
+                    "DATABASE_URL": "postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem",
+                    "SLS_IOT_ENDPOINT": "a1ukwiq3kverly-ats.iot.us-east-1.amazonaws.com",
+                    "SLS_SERVICE": "emotion-detox-backend",
+                    "SLS_STAGE": "dev",
+                    "SLS_FUNCTION": "api"
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "ApiLogGroup"
+              ]
+            },
+            "ApiLambdaVersiont0lFf7XD0urss47qvCf4OaNeRFw24vKoLTOxH2TRA": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "ApiLambdaFunction"
+                },
+                "CodeSha256": "iZDzGBwKnpTg/RyYFw4jZ0KArsBzwwEBNRXFln0RrW4="
+              }
+            },
+            "HttpApi": {
+              "Type": "AWS::ApiGatewayV2::Api",
+              "Properties": {
+                "Name": "dev-emotion-detox-backend",
+                "ProtocolType": "HTTP"
+              }
+            },
+            "HttpApiStage": {
+              "Type": "AWS::ApiGatewayV2::Stage",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "StageName": "$default",
+                "AutoDeploy": true,
+                "DefaultRouteSettings": {
+                  "DetailedMetricsEnabled": false
+                }
+              }
+            },
+            "ApiLambdaPermissionHttpApi": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "ApiLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":execute-api:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":",
+                      {
+                        "Ref": "HttpApi"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              }
+            },
+            "HttpApiIntegrationApi": {
+              "Type": "AWS::ApiGatewayV2::Integration",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                  "Fn::GetAtt": [
+                    "ApiLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "PayloadFormatVersion": "2.0",
+                "TimeoutInMillis": 30000
+              }
+            },
+            "HttpApiRouteGetApiUrgesEmotionDashmap": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "GET /api/urges/emotion-map",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationApi"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationApi"
+            },
+            "HttpApiRouteAnyApiProxyVar": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "ANY /api/{proxy+}",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationApi"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationApi"
+            },
+            "HttpApiRouteAny": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "ANY /",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationApi"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationApi"
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+              "Export": {
+                "Name": "sls-emotion-detox-backend-dev-ServerlessDeploymentBucketName"
+              }
+            },
+            "ApiLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "ApiLambdaVersiont0lFf7XD0urss47qvCf4OaNeRFw24vKoLTOxH2TRA"
+              },
+              "Export": {
+                "Name": "sls-emotion-detox-backend-dev-ApiLambdaFunctionQualifiedArn"
+              }
+            },
+            "HttpApiId": {
+              "Description": "Id of the HTTP API",
+              "Value": {
+                "Ref": "HttpApi"
+              },
+              "Export": {
+                "Name": "sls-emotion-detox-backend-dev-HttpApiId"
+              }
+            },
+            "HttpApiUrl": {
+              "Description": "URL of the HTTP API",
+              "Value": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "https://",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    ".execute-api.",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ".",
+                    {
+                      "Ref": "AWS::URLSuffix"
+                    }
+                  ]
+                ]
+              },
+              "Export": {
+                "Name": "sls-emotion-detox-backend-dev-HttpApiUrl"
+              }
+            }
+          }
+        },
+        "vpc": {}
+      },
+      "functions": {
+        "api": {
+          "handler": "index.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/api/urges/emotion-map",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/api/urges/emotion-map"
+            },
+            {
+              "httpApi": {
+                "path": "/api/{proxy+}",
+                "method": "ANY"
+              },
+              "resolvedMethod": "ANY",
+              "resolvedPath": "/api/{proxy+}"
+            },
+            {
+              "httpApi": {
+                "path": "/",
+                "method": "ANY"
+              },
+              "resolvedMethod": "ANY",
+              "resolvedPath": "/"
+            }
+          ],
+          "timeout": 30,
+          "memorySize": 512,
+          "environment": {
+            "NODE_ENV": "production",
+            "DATABASE_URL": "postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem",
+            "SLS_IOT_ENDPOINT": "a1ukwiq3kverly-ats.iot.us-east-1.amazonaws.com",
+            "SLS_SERVICE": "emotion-detox-backend",
+            "SLS_STAGE": "dev",
+            "SLS_FUNCTION": "api"
+          },
+          "name": "emotion-detox-backend-dev-api",
+          "originalHandler": "dist/handler.handler",
+          "runtime": "nodejs20.x",
+          "package": {
+            "artifact": "/Users/telephant/self/emotion-detox/apps/backend/.serverless/emotion-detox-backend.zip"
+          },
+          "memory": 512,
+          "vpc": {},
+          "versionLogicalId": "ApiLambdaVersiont0lFf7XD0urss47qvCf4OaNeRFw24vKoLTOxH2TRA"
+        }
+      },
+      "custom": {
+        "serverless-offline": {
+          "httpPort": 3001,
+          "lambdaPort": 3003,
+          "host": "localhost",
+          "noPrependStageInUrl": true,
+          "printOutput": true,
+          "noAuth": true,
+          "corsAllowOrigin": "*",
+          "corsAllowHeaders": "accept,content-type,x-api-key,authorization",
+          "ignoreJWTSignature": true,
+          "showDuration": true,
+          "showTimeout": true,
+          "showLambdaLog": true,
+          "useChildProcesses": true,
+          "noCache": true
+        },
+        "stages": {
+          "dev": {
+            "domainName": "api-dev.your-domain.com"
+          },
+          "staging": {
+            "domainName": "api-staging.your-domain.com"
+          },
+          "prod": {
+            "domainName": "api.your-domain.com"
+          }
+        }
+      },
+      "package": {
+        "patterns": [
+          "dist/**",
+          "package.json",
+          "node_modules/**",
+          "!node_modules/@types/**",
+          "!node_modules/typescript/**",
+          "!node_modules/jest/**",
+          "!node_modules/ts-jest/**",
+          "!node_modules/ts-node/**",
+          "!node_modules/ts-node-dev/**",
+          "!node_modules/supertest/**",
+          "!node_modules/serverless/**",
+          "!node_modules/serverless-offline/**",
+          "!node_modules/serverless-dotenv-plugin/**",
+          "!node_modules/prisma/**",
+          "!.git/**",
+          "!.env*",
+          "!*.md",
+          "!jest.config.js",
+          "!__tests__/**",
+          "!coverage/**",
+          "!.vscode/**",
+          "!*.log",
+          "!src/**"
+        ],
+        "artifactsS3KeyDirname": "serverless/emotion-detox-backend/dev/code-artifacts",
+        "deploymentBucket": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+        "artifact": "/Users/telephant/self/emotion-detox/apps/backend/.serverless/emotion-detox-backend.zip",
+        "artifactDirectoryName": "serverless/emotion-detox-backend/dev/1748862105618-2025-06-02T11:01:45.618Z"
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs20.x",
+      "stage": "dev",
+      "region": "us-east-1",
+      "environment": {
+        "NODE_ENV": "development",
+        "DATABASE_URL": "postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem"
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "rds-data:*"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iot:*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      },
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ApiLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/emotion-detox-backend-dev-api"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "emotion-detox-backend",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/emotion-detox-backend-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/emotion-detox-backend-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "rds-data:*"
+                        ],
+                        "Resource": "*"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogGroup",
+                          "logs:CreateLogStream",
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": "*"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "iot:*"
+                        ],
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "emotion-detox-backend",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "ApiLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+                "S3Key": "serverless/emotion-detox-backend/dev/1748862105618-2025-06-02T11:01:45.618Z/emotion-detox-backend.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "emotion-detox-backend-dev-api",
+              "MemorySize": 512,
+              "Timeout": 30,
+              "Environment": {
+                "Variables": {
+                  "NODE_ENV": "production",
+                  "DATABASE_URL": "postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem",
+                  "SLS_IOT_ENDPOINT": "a1ukwiq3kverly-ats.iot.us-east-1.amazonaws.com",
+                  "SLS_SERVICE": "emotion-detox-backend",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "api"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ApiLogGroup"
+            ]
+          },
+          "ApiLambdaVersiont0lFf7XD0urss47qvCf4OaNeRFw24vKoLTOxH2TRA": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ApiLambdaFunction"
+              },
+              "CodeSha256": "iZDzGBwKnpTg/RyYFw4jZ0KArsBzwwEBNRXFln0RrW4="
+            }
+          },
+          "HttpApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-emotion-detox-backend",
+              "ProtocolType": "HTTP"
+            }
+          },
+          "HttpApiStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "StageName": "$default",
+              "AutoDeploy": true,
+              "DefaultRouteSettings": {
+                "DetailedMetricsEnabled": false
+              }
+            }
+          },
+          "ApiLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ApiLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationApi": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "Fn::GetAtt": [
+                  "ApiLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetApiUrgesEmotionDashmap": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /api/urges/emotion-map",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          },
+          "HttpApiRouteAnyApiProxyVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "ANY /api/{proxy+}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          },
+          "HttpApiRouteAny": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "ANY /",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+            "Export": {
+              "Name": "sls-emotion-detox-backend-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "ApiLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ApiLambdaVersiont0lFf7XD0urss47qvCf4OaNeRFw24vKoLTOxH2TRA"
+            },
+            "Export": {
+              "Name": "sls-emotion-detox-backend-dev-ApiLambdaFunctionQualifiedArn"
+            }
+          },
+          "HttpApiId": {
+            "Description": "Id of the HTTP API",
+            "Value": {
+              "Ref": "HttpApi"
+            },
+            "Export": {
+              "Name": "sls-emotion-detox-backend-dev-HttpApiId"
+            }
+          },
+          "HttpApiUrl": {
+            "Description": "URL of the HTTP API",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  }
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-emotion-detox-backend-dev-HttpApiUrl"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "dashboard": {
+      "isEnabledForService": true,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": {
+        "providers": false,
+        "monitoring": false
+      },
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": "S2bPYSRPHm9M1LbkXw",
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "# \"org\" ensures this Service is used with the correct Serverless Framework Access Key.\norg: telephant\nservice: emotion-detox-backend\napp: emotion-detox-backend-app\n\nplugins:\n  - serverless-offline\n  - serverless-dotenv-plugin\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  stage: ${opt:stage, 'dev'}\n  region: ${opt:region, 'us-east-1'}\n  \n  # Environment variables\n  environment:\n    NODE_ENV: production\n    DATABASE_URL: postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pemrl\n    \n  # IAM Role permissions\n  iam:\n    role:\n      statements:\n        # Add permissions for RDS/Aurora if using AWS managed database\n        - Effect: Allow\n          Action:\n            - rds-data:*\n          Resource: \"*\"\n        # Add permissions for CloudWatch logging\n        - Effect: Allow\n          Action:\n            - logs:CreateLogGroup\n            - logs:CreateLogStream\n            - logs:PutLogEvents\n          Resource: \"*\"\n  \n  # API Gateway configuration (only use if you have existing API Gateway)\n  # apiGateway:\n  #   restApiId: ${env:API_GATEWAY_REST_API_ID}\n  #   restApiRootResourceId: ${env:API_GATEWAY_ROOT_RESOURCE_ID}\n  #   minimumCompressionSize: 1024\n  #   binaryMediaTypes:\n  #     - '*/*'\n\nfunctions:\n  api:\n    handler: dist/handler.handler\n    events:\n      - httpApi:\n          path: /api/urges/emotion-map\n          method: GET\n      - httpApi:\n          path: /api/{proxy+}\n          method: ANY\n      - httpApi:\n          path: /\n          method: ANY\n    \n    # Lambda function configuration\n    timeout: 30\n    memorySize: 512\n    environment:\n      NODE_ENV: production\n      DATABASE_URL: postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem\n    \n    # VPC configuration (uncomment if you need to connect to VPC resources like RDS)\n    # vpc:\n    #   securityGroupIds:\n    #     - sg-xxxxxxxxx\n    #   subnetIds:\n    #     - subnet-xxxxxxxxx\n    #     - subnet-yyyyyyyyy\n\n# Custom configuration\ncustom:\n  # Serverless Offline configuration for local development\n  serverless-offline:\n    httpPort: 3001\n    lambdaPort: 3003\n    host: localhost\n    noPrependStageInUrl: true\n    printOutput: true\n    noAuth: true\n    corsAllowOrigin: '*'\n    corsAllowHeaders: 'accept,content-type,x-api-key,authorization'\n    ignoreJWTSignature: true\n    # Enable detailed logging\n    showDuration: true\n    showTimeout: true\n    showLambdaLog: true\n    useChildProcesses: true\n    # Disable caching for development\n    noCache: true\n    \n  # Environment-specific settings\n  stages:\n    dev:\n      domainName: api-dev.your-domain.com\n    staging:\n      domainName: api-staging.your-domain.com\n    prod:\n      domainName: api.your-domain.com\n\n# Package configuration\npackage:\n  patterns:\n    - 'dist/**'\n    - 'package.json'\n    - 'node_modules/**'\n    - '!node_modules/@types/**'\n    - '!node_modules/typescript/**'\n    - '!node_modules/jest/**'\n    - '!node_modules/ts-jest/**'\n    - '!node_modules/ts-node/**'\n    - '!node_modules/ts-node-dev/**'\n    - '!node_modules/supertest/**'\n    - '!node_modules/serverless/**'\n    - '!node_modules/serverless-offline/**'\n    - '!node_modules/serverless-dotenv-plugin/**'\n    - '!node_modules/prisma/**'\n    - '!.git/**'\n    - '!.env*'\n    - '!*.md'\n    - '!jest.config.js'\n    - '!__tests__/**'\n    - '!coverage/**'\n    - '!.vscode/**'\n    - '!*.log'\n    - '!src/**'\n\n# CloudFormation resources (optional)\n# resources:\n#   Resources:\n#     # Add additional AWS resources here if needed\n#   Outputs:\n#     ApiGatewayRestApiId:\n#       Value: !Ref ApiGatewayRestApi\n#       Export:\n#         Name: ${self:service}-${self:provider.stage}-ApiGatewayRestApiId ",
+    "command": [
+      "dev"
+    ],
+    "options": {},
+    "orgId": "1a86dfa2-3198-402d-9886-1187028f095a",
+    "orgName": "telephant",
+    "userId": "8SsNMXSPrlj3sxHFZc",
+    "userName": "telephant",
+    "serviceProviderAwsAccountId": "831888162437",
+    "serviceProviderAwsCfStackName": "emotion-detox-backend-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:831888162437:stack/emotion-detox-backend-dev/27b6f220-3a24-11f0-a773-0affe9a4475b",
+    "serviceProviderAwsCfStackCreated": "2025-05-26T11:25:40.940Z",
+    "serviceProviderAwsCfStackUpdated": "2025-05-26T11:38:21.631Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "ApiLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-1:831888162437:function:emotion-detox-backend-dev-api:4",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-emotion-detox-backend-dev-ApiLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "HttpApiId",
+        "OutputValue": "fge3b3gmw9",
+        "Description": "Id of the HTTP API",
+        "ExportName": "sls-emotion-detox-backend-dev-HttpApiId"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+        "ExportName": "sls-emotion-detox-backend-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "HttpApiUrl",
+        "OutputValue": "https://fge3b3gmw9.execute-api.us-east-1.amazonaws.com",
+        "Description": "URL of the HTTP API",
+        "ExportName": "sls-emotion-detox-backend-dev-HttpApiUrl"
+      }
+    ],
+    "compiledCloudFormationTemplate": {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "The AWS CloudFormation template for this Serverless application",
+      "Resources": {
+        "ApiLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/emotion-detox-backend-dev-api"
+          }
+        },
+        "IamRoleLambdaExecution": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "lambda.amazonaws.com"
+                    ]
+                  },
+                  "Action": [
+                    "sts:AssumeRole"
+                  ]
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "emotion-detox-backend",
+                      "dev",
+                      "lambda"
+                    ]
+                  ]
+                },
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogStream",
+                        "logs:CreateLogGroup",
+                        "logs:TagResource"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/emotion-detox-backend-dev*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/emotion-detox-backend-dev*:*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "rds-data:*"
+                      ],
+                      "Resource": "*"
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": "*"
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "iot:*"
+                      ],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "Path": "/",
+            "RoleName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "emotion-detox-backend",
+                  "dev",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "lambdaRole"
+                ]
+              ]
+            }
+          }
+        },
+        "ApiLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+              "S3Key": "serverless/emotion-detox-backend/dev/1748862105618-2025-06-02T11:01:45.618Z/emotion-detox-backend.zip"
+            },
+            "Handler": "index.handler",
+            "Runtime": "nodejs20.x",
+            "FunctionName": "emotion-detox-backend-dev-api",
+            "MemorySize": 512,
+            "Timeout": 30,
+            "Environment": {
+              "Variables": {
+                "NODE_ENV": "production",
+                "DATABASE_URL": "postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem",
+                "SLS_IOT_ENDPOINT": "a1ukwiq3kverly-ats.iot.us-east-1.amazonaws.com",
+                "SLS_SERVICE": "emotion-detox-backend",
+                "SLS_STAGE": "dev",
+                "SLS_FUNCTION": "api"
+              }
+            },
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "ApiLogGroup"
+          ]
+        },
+        "ApiLambdaVersiont0lFf7XD0urss47qvCf4OaNeRFw24vKoLTOxH2TRA": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "ApiLambdaFunction"
+            },
+            "CodeSha256": "iZDzGBwKnpTg/RyYFw4jZ0KArsBzwwEBNRXFln0RrW4="
+          }
+        },
+        "HttpApi": {
+          "Type": "AWS::ApiGatewayV2::Api",
+          "Properties": {
+            "Name": "dev-emotion-detox-backend",
+            "ProtocolType": "HTTP"
+          }
+        },
+        "HttpApiStage": {
+          "Type": "AWS::ApiGatewayV2::Stage",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "StageName": "$default",
+            "AutoDeploy": true,
+            "DefaultRouteSettings": {
+              "DetailedMetricsEnabled": false
+            }
+          }
+        },
+        "ApiLambdaPermissionHttpApi": {
+          "Type": "AWS::Lambda::Permission",
+          "Properties": {
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "ApiLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Action": "lambda:InvokeFunction",
+            "Principal": "apigateway.amazonaws.com",
+            "SourceArn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:",
+                  {
+                    "Ref": "AWS::Partition"
+                  },
+                  ":execute-api:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  "/*"
+                ]
+              ]
+            }
+          }
+        },
+        "HttpApiIntegrationApi": {
+          "Type": "AWS::ApiGatewayV2::Integration",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": {
+              "Fn::GetAtt": [
+                "ApiLambdaFunction",
+                "Arn"
+              ]
+            },
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+          }
+        },
+        "HttpApiRouteGetApiUrgesEmotionDashmap": {
+          "Type": "AWS::ApiGatewayV2::Route",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "RouteKey": "GET /api/urges/emotion-map",
+            "Target": {
+              "Fn::Join": [
+                "/",
+                [
+                  "integrations",
+                  {
+                    "Ref": "HttpApiIntegrationApi"
+                  }
+                ]
+              ]
+            }
+          },
+          "DependsOn": "HttpApiIntegrationApi"
+        },
+        "HttpApiRouteAnyApiProxyVar": {
+          "Type": "AWS::ApiGatewayV2::Route",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "RouteKey": "ANY /api/{proxy+}",
+            "Target": {
+              "Fn::Join": [
+                "/",
+                [
+                  "integrations",
+                  {
+                    "Ref": "HttpApiIntegrationApi"
+                  }
+                ]
+              ]
+            }
+          },
+          "DependsOn": "HttpApiIntegrationApi"
+        },
+        "HttpApiRouteAny": {
+          "Type": "AWS::ApiGatewayV2::Route",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "RouteKey": "ANY /",
+            "Target": {
+              "Fn::Join": [
+                "/",
+                [
+                  "integrations",
+                  {
+                    "Ref": "HttpApiIntegrationApi"
+                  }
+                ]
+              ]
+            }
+          },
+          "DependsOn": "HttpApiIntegrationApi"
+        }
+      },
+      "Outputs": {
+        "ServerlessDeploymentBucketName": {
+          "Value": "serverless-framework-deployments-us-east-1-c9d1f435-1150",
+          "Export": {
+            "Name": "sls-emotion-detox-backend-dev-ServerlessDeploymentBucketName"
+          }
+        },
+        "ApiLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "ApiLambdaVersiont0lFf7XD0urss47qvCf4OaNeRFw24vKoLTOxH2TRA"
+          },
+          "Export": {
+            "Name": "sls-emotion-detox-backend-dev-ApiLambdaFunctionQualifiedArn"
+          }
+        },
+        "HttpApiId": {
+          "Description": "Id of the HTTP API",
+          "Value": {
+            "Ref": "HttpApi"
+          },
+          "Export": {
+            "Name": "sls-emotion-detox-backend-dev-HttpApiId"
+          }
+        },
+        "HttpApiUrl": {
+          "Description": "URL of the HTTP API",
+          "Value": {
+            "Fn::Join": [
+              "",
+              [
+                "https://",
+                {
+                  "Ref": "HttpApi"
+                },
+                ".execute-api.",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ".",
+                {
+                  "Ref": "AWS::URLSuffix"
+                }
+              ]
+            ]
+          },
+          "Export": {
+            "Name": "sls-emotion-detox-backend-dev-HttpApiUrl"
+          }
+        }
+      }
+    }
+  }
+}

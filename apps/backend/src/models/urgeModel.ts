@@ -8,6 +8,7 @@ import {
 } from '@repo/shared-types';
 import { z } from 'zod';
 import prisma from '../config/database';
+import { Urge as PrismaUrge } from '@prisma/client';
 
 // Validation schema for urge data
 export const urgeSchema = z.object({
@@ -173,10 +174,9 @@ export const UrgeModel = {
         [key: string]: number;
       }>();
       
-      urges.forEach(urge => {
+      urges.forEach((urge: PrismaUrge) => {
         const date = new Date(urge.createTime);
-        // Cast to string explicitly to resolve undefined issue
-        const dateString = date.toISOString().split('T')[0] as string; // YYYY-MM-DD
+        const dateString = date.toISOString().split('T')[0];
         
         if (!dateMap.has(dateString)) {
           dateMap.set(dateString, {
@@ -188,17 +188,16 @@ export const UrgeModel = {
           });
         }
         
-        // Non-null assertion is safe here because we just checked and set if not exists
-        const statusCounts = dateMap.get(dateString)!;
+        const statusCounts = dateMap.get(dateString);
+        if (!statusCounts) return;
         
-        // Increment the specific status count - using non-null assertion since we know it can't be undefined here
-        if (urge.status && Object.values(UrgeStatus).includes(urge.status as UrgeStatus)) {
-          statusCounts[urge.status!] += 1;
+        const status = urge.status as UrgeStatus;
+        if (status && Object.values(UrgeStatus).includes(status)) {
+          statusCounts[status] += 1;
         } else {
           statusCounts[UrgeStatus.PENDING] += 1;
         }
         
-        // Increment total count
         statusCounts.total += 1;
       });
       

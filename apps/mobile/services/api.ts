@@ -22,7 +22,8 @@ import { Platform } from 'react-native';
 // For web, use the current origin or localhost
 const DEV_API_URL_IOS = 'http://192.168.86.226:3000';
 const DEV_API_URL_ANDROID = 'http://192.168.86.226:3000';
-const DEV_API_URL_WEB = 'http://localhost:3000';
+// const DEV_API_URL_WEB = 'http://localhost:3000';
+const DEV_API_URL_WEB = 'https://dmoo57gkff.execute-api.eu-north-1.amazonaws.com/prod';
 const PROD_API_URL = 'https://emotion-detox-api.yourdomain.com'; // Replace with your production URL
 
 // Determine the API URL based on environment and platform
@@ -150,7 +151,7 @@ async function fetchApi<T>(endpoint: string, options: { method?: string; params?
   console.log('🚀 ===== method:', method);
   
   // Build URL with query params
-  let url = `${API_URL}${API_BASE_PATH}${endpoint}`;
+  let url = `${API_URL}${endpoint}`;
   if (params) {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => v !== undefined && queryParams.append(k, v));

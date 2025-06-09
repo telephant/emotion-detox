@@ -16,7 +16,7 @@ import {
 /**
  * API base path
  */
-export const API_BASE_PATH = '/api';
+export const API_BASE_PATH = '';
 
 /**
  * API endpoints as string literals

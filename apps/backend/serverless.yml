@@ -1,0 +1,140 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: telephant
+service: emotion-detox-backend
+app: emotion-detox-backend-app
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  
+  # Environment variables
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pemrl
+    
+  # IAM Role permissions
+  iam:
+    role:
+      statements:
+        # Add permissions for RDS/Aurora if using AWS managed database
+        - Effect: Allow
+          Action:
+            - rds-data:*
+          Resource: "*"
+        # Add permissions for CloudWatch logging
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+  
+  # API Gateway configuration (only use if you have existing API Gateway)
+  # apiGateway:
+  #   restApiId: ${env:API_GATEWAY_REST_API_ID}
+  #   restApiRootResourceId: ${env:API_GATEWAY_ROOT_RESOURCE_ID}
+  #   minimumCompressionSize: 1024
+  #   binaryMediaTypes:
+  #     - '*/*'
+
+functions:
+  api:
+    handler: dist/handler.handler
+    events:
+      - httpApi:
+          path: /api/urges/emotion-map
+          method: GET
+      - httpApi:
+          path: /api/{proxy+}
+          method: ANY
+      - httpApi:
+          path: /
+          method: ANY
+    
+    # Lambda function configuration
+    timeout: 30
+    memorySize: 512
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://emtiondetox:Z8%23nG5%21kL2%24@emtion-detox.cli4iagusw1s.eu-north-1.rds.amazonaws.com:5432/emotion-detox?schema=public&sslmode=verify-full&sslrootcert=./certs/eu-north-1-bundle.pem
+    
+    # VPC configuration (uncomment if you need to connect to VPC resources like RDS)
+    # vpc:
+    #   securityGroupIds:
+    #     - sg-xxxxxxxxx
+    #   subnetIds:
+    #     - subnet-xxxxxxxxx
+    #     - subnet-yyyyyyyyy
+
+# Custom configuration
+custom:
+  # Serverless Offline configuration for local development
+  serverless-offline:
+    httpPort: 3001
+    lambdaPort: 3003
+    host: localhost
+    noPrependStageInUrl: true
+    printOutput: true
+    noAuth: true
+    corsAllowOrigin: '*'
+    corsAllowHeaders: 'accept,content-type,x-api-key,authorization'
+    ignoreJWTSignature: true
+    # Enable detailed logging
+    showDuration: true
+    showTimeout: true
+    showLambdaLog: true
+    useChildProcesses: true
+    # Disable caching for development
+    noCache: true
+    
+  # Environment-specific settings
+  stages:
+    dev:
+      domainName: api-dev.your-domain.com
+    staging:
+      domainName: api-staging.your-domain.com
+    prod:
+      domainName: api.your-domain.com
+
+# Package configuration
+package:
+  patterns:
+    - 'dist/**'
+    - 'package.json'
+    - 'node_modules/**'
+    - '!node_modules/@types/**'
+    - '!node_modules/typescript/**'
+    - '!node_modules/jest/**'
+    - '!node_modules/ts-jest/**'
+    - '!node_modules/ts-node/**'
+    - '!node_modules/ts-node-dev/**'
+    - '!node_modules/supertest/**'
+    - '!node_modules/serverless/**'
+    - '!node_modules/serverless-offline/**'
+    - '!node_modules/serverless-dotenv-plugin/**'
+    - '!node_modules/prisma/**'
+    - '!.git/**'
+    - '!.env*'
+    - '!*.md'
+    - '!jest.config.js'
+    - '!__tests__/**'
+    - '!coverage/**'
+    - '!.vscode/**'
+    - '!*.log'
+    - '!src/**'
+
+# CloudFormation resources (optional)
+# resources:
+#   Resources:
+#     # Add additional AWS resources here if needed
+#   Outputs:
+#     ApiGatewayRestApiId:
+#       Value: !Ref ApiGatewayRestApi
+#       Export:
+#         Name: ${self:service}-${self:provider.stage}-ApiGatewayRestApiId 

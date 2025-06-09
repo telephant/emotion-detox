@@ -1,11 +1,10 @@
-import { createRouter } from '../utils/routerUtils';
+import { Router, IRouter } from 'express';
 import { UserController } from '../controllers/userController';
 
-// Create a router using our utility
-const { router } = createRouter();
+const router: IRouter = Router();
 
 // User endpoints
-router.post('/register', UserController.registerDevice);
-router.get('/', UserController.getUserByDeviceId);
+router.post('/register', UserController.registerDevice as any);
+router.get('/', UserController.getUserByDeviceId as any);
 
 export default router; 

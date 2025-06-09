@@ -1,25 +1,20 @@
-import express from 'express';
-import cors from 'cors';
-import healthRoutes from './routes/healthRoutes';
-import urgeRoutes from './routes/urgeRoutes';
-import userRoutes from './routes/userRoutes';
-import moodRoutes from './routes/moodRoutes';
+import { createApp } from './app';
+import serverless from 'serverless-http';
 
-const app = express();
+const app = createApp();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors()); // Enable CORS for all routes
-app.use(express.json());
+// Start server only when not in serverless environment
+if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`CORS enabled, allowing requests from configured origins`);
+  });
+}
 
-// Routes
-app.use('/api/health', healthRoutes);
-app.use('/api/urges', urgeRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/moods', moodRoutes);
+// Export the serverless handler
+export const handler = serverless(app);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`CORS enabled, allowing requests from any origin`);
-});
+// Also export the app for local development
+export default app;

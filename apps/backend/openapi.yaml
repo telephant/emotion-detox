@@ -1,0 +1,535 @@
+openapi: 3.0.0
+info:
+  title: Emotion Detox API
+  version: 1.0.0
+  description: API for managing emotions, urges, and moods in the Emotion Detox application
+
+servers:
+  - url: /api
+    description: Base API path
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+    
+    Success:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        deviceId:
+          type: string
+        createTime:
+          type: number
+          format: int64
+        updateTime:
+          type: number
+          format: int64
+    
+    Mood:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        text:
+          type: string
+        emoji:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+          nullable: true
+    
+    UrgeStatus:
+      type: string
+      enum:
+        - PENDING
+        - PEACEFUL
+        - PRESENT
+        - OVERCOME
+    
+    Urge:
+      type: object
+      properties:
+        id:
+          type: number
+        type:
+          type: string
+        userId:
+          type: string
+        status:
+          $ref: '#/components/schemas/UrgeStatus'
+        count:
+          type: number
+        createTime:
+          type: string
+          format: date-time
+    
+    DailyStatusCounts:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        counts:
+          type: object
+          properties:
+            PEACEFUL:
+              type: number
+            PRESENT:
+              type: number
+            OVERCOME:
+              type: number
+            PENDING:
+              type: number
+            total:
+              type: number
+    
+    EmotionMapData:
+      type: object
+      properties:
+        dailyData:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyStatusCounts'
+        totalDays:
+          type: number
+
+paths:
+  /:
+    get:
+      summary: Get API information
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  version:
+                    type: string
+                  environment:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /users:
+    get:
+      summary: Get user by device ID
+      parameters:
+        - name: deviceId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      summary: Register a device
+      operationId: registerDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                  minLength: 1
+      responses:
+        '200':
+          description: Device registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /moods:
+    post:
+      summary: Create a new mood entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - text
+              properties:
+                userId:
+                  type: string
+                text:
+                  type: string
+                  minLength: 1
+                emoji:
+                  type: string
+      responses:
+        '200':
+          description: Mood created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mood:
+                    $ref: '#/components/schemas/Mood'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /moods/user/{userId}:
+    get:
+      summary: Get all moods for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of moods
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  moods:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Mood'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /moods/{moodId}:
+    get:
+      summary: Get a mood by ID
+      parameters:
+        - name: moodId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Mood found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mood:
+                    $ref: '#/components/schemas/Mood'
+        '404':
+          description: Mood not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      summary: Update a mood
+      parameters:
+        - name: moodId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  minLength: 1
+                emoji:
+                  type: string
+      responses:
+        '200':
+          description: Mood updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mood:
+                    $ref: '#/components/schemas/Mood'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Mood not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      summary: Delete a mood
+      parameters:
+        - name: moodId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Mood deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+        '404':
+          description: Mood not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /urges:
+    get:
+      summary: Get all urges
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of urges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Urge'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /urges/delay:
+    post:
+      summary: Record a new urge delay action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                userId:
+                  type: string
+                status:
+                  $ref: '#/components/schemas/UrgeStatus'
+      responses:
+        '200':
+          description: Urge delay recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  urge:
+                    $ref: '#/components/schemas/Urge'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /urges/update:
+    post:
+      summary: Update urge status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - status
+              properties:
+                id:
+                  type: number
+                userId:
+                  type: string
+                status:
+                  $ref: '#/components/schemas/UrgeStatus'
+      responses:
+        '200':
+          description: Urge status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  urge:
+                    $ref: '#/components/schemas/Urge'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /urges/stats:
+    get:
+      summary: Get urge statistics
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Urge statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  recent:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Urge'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /urges/emotion-map:
+    get:
+      summary: Get emotion map data
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: weeks
+          in: query
+          schema:
+            type: string
+            default: "7"
+      responses:
+        '200':
+          description: Emotion map data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmotionMapData'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error' 

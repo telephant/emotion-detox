@@ -1,7 +1,7 @@
 import { Colors } from '@/constants/Colors';
 import { useAsync } from '@/hooks/useAsync';
-import { apiClient } from '@/services/api';
-import { getUserId } from '@/services/userStorage';
+import { urgesApi } from '@/api/urges';
+import { authService } from '@/services/authService';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, ActivityIndicator, View } from 'react-native';
@@ -22,13 +22,13 @@ export default function DelayUrgeButton(props: DelayUrgeButtonProps) {
     execute,
     loading,
     error,
-  } = useAsync(apiClient.delayUrge, false);
+  } = useAsync(urgesApi.delayUrge, false);
 
   // Get the userId from AsyncStorage on component mount
   useEffect(() => {
     const fetchUserId = async () => {
       try {
-        const id = await getUserId();
+        const id = await authService.getCurrentUserId();
         setUserId(id);
       } catch (err) {
         console.error('Error fetching user ID:', err);
@@ -54,6 +54,7 @@ export default function DelayUrgeButton(props: DelayUrgeButtonProps) {
     const urgeData = {
       type: 'urge',
       userId,
+      deviceId: userId, // Send both for server to handle user creation
     };
     
     // Execute the API call with the urge data

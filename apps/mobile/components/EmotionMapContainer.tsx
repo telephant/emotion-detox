@@ -1,7 +1,7 @@
 import { Colors } from '@/constants/Colors';
 import { useAsync } from '@/hooks/useAsync';
-import { apiClient } from '@/services/api';
-import { getUserId } from '@/services/userStorage';
+import { urgesApi } from '@/api/urges';
+import { authService } from '@/services/authService';
 import { EmotionData, processEmotionData } from '@/utils/emotionUtils';
 import { DailyStatusCounts, UrgeStatus } from '@repo/shared-types';
 import React, { useEffect, useState } from 'react';
@@ -24,13 +24,13 @@ export const EmotionMapContainer = ({
   const [userId, setUserId] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   
-  const { execute, loading, error } = useAsync(apiClient.getEmotionMapData, false);
+  const { execute, loading, error } = useAsync(urgesApi.getEmotionMapData, false);
   
   // Get the userId from AsyncStorage on component mount
   useEffect(() => {
     const fetchUserId = async () => {
       try {
-        const id = await getUserId();
+        const id = await authService.getCurrentUserId();
         setUserId(id);
       } catch (err) {
         console.error('Error fetching user ID:', err);

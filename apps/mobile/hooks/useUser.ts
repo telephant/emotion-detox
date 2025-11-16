@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { getDeviceId } from '../services/deviceId';
-import { apiClient } from '../services/api';
-import { getUserId, storeUserId } from '../services/userStorage';
+import { authService } from '@/services/authService';
+import { usersApi } from '@/api/users';
 import { User } from '@repo/shared-types';
-import { useAsync } from './useAsync';
+import { useAsync } from '@/hooks/useAsync';
 import { Alert } from 'react-native';
 
 export function useUser() {
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [anonymousId, setAnonymousId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [storageInitialized, setStorageInitialized] = useState(false);
@@ -21,37 +20,28 @@ export function useUser() {
     execute: registerDevice,
     loading: registerLoading,
     error: registerError,
-  } = useAsync(apiClient.registerDevice);
+  } = useAsync(usersApi.registerDevice);
 
   const {
     execute: getUserByDeviceId,
     loading: getUserLoading,
     error: getUserError,
-  } = useAsync(apiClient.getUserByDeviceId);
+  } = useAsync(usersApi.getUserByDeviceId);
 
-  // First, check for stored userId and deviceId
+  // Initialize anonymous ID and check for existing user
   useEffect(() => {
     let isMounted = true;
 
     const initFromStorage = async () => {
       try {
-        // Try to get the userId first
-        const storedUserId = await getUserId();
-        console.log('📱 getUserId() returned:', storedUserId);
-        
-        // Always get the device ID as well
-        const id = await getDeviceId();
-        
+        console.log('� Initializing user data with anonymous auth...');
+
+        // Get or create anonymous ID
+        const anonId = await authService.getAnonymousId();
+        console.log('� Anonymous ID:', anonId);
+
         if (isMounted) {
-          if (storedUserId) {
-            setUserId(storedUserId);
-            console.log('🔄 Using stored user ID:', storedUserId);
-          } else {
-            console.log('⚠️ No stored user ID found');
-          }
-          
-          setDeviceId(id);
-          console.log('📱 Device ID:', id);
+          setAnonymousId(anonId);
           setStorageInitialized(true);
         }
       } catch (error) {
@@ -64,7 +54,6 @@ export function useUser() {
       }
     };
 
-    console.log('🔄 Initializing user data from storage');
     initFromStorage();
 
     return () => {
@@ -72,56 +61,54 @@ export function useUser() {
     };
   }, []);
 
-  // Then, once we have the device ID but no userId, register or get the user
+  // Register or get user with anonymous ID
   useEffect(() => {
     // Skip if storage initialization hasn't completed
     if (!storageInitialized) return;
-    
+
     // If we already have a userId, we can finish loading
     if (userId) {
       console.log('👤 Already have user ID, finishing initialization:', userId);
       setIsLoading(false);
       return;
     }
-    
-    // Skip if we don't have a deviceId
-    if (!deviceId) {
-      console.log('⚠️ No device ID available, cannot initialize user');
+
+    // Skip if we don't have an anonymousId
+    if (!anonymousId) {
+      console.log('⚠️ No anonymous ID available, cannot initialize user');
       setIsLoading(false);
       return;
     }
 
     let isMounted = true;
-    
+
     const initUser = async () => {
       try {
-        // Try to get the user first
+        // Try to get the user first using anonymous ID as device ID
         try {
-          console.log('🔍 Looking up user by device ID:', deviceId);
-          const userResponse = await getUserByDeviceId(deviceId);
-          
+          console.log('🔍 Looking up user by anonymous ID:', anonymousId);
+          const userResponse = await getUserByDeviceId(anonymousId);
+
           if (isMounted) {
-            console.log('✅ User found by device ID');
+            console.log('✅ User found by anonymous ID');
             setUser(userResponse.data);
             const newUserId = userResponse.data.id;
             setUserId(newUserId);
-            await storeUserId(newUserId);
             console.log('👤 User found:', newUserId);
           }
         } catch (getUserError) {
-          console.log('👤 User not found, registering device...', getUserError);
-          
+          console.log('👤 User not found, registering anonymous user...', getUserError);
+
           try {
-            console.log('🔄 Registering device with ID:', deviceId);
-            const registrationResponse = await registerDevice(deviceId);
-            
+            console.log('🔄 Registering anonymous user with ID:', anonymousId);
+            const registrationResponse = await registerDevice(anonymousId);
+
             if (isMounted) {
-              console.log('✅ Device registration successful');
+              console.log('✅ Anonymous user registration successful');
               setUser(registrationResponse.data);
               const newUserId = registrationResponse.data.id;
               setUserId(newUserId);
-              await storeUserId(newUserId);
-              console.log('✅ Device registered, user ID:', newUserId);
+              console.log('✅ Anonymous user registered, user ID:', newUserId);
             }
           } catch (registerError) {
             console.error('❌ Failed to register device:', registerError);
@@ -171,12 +158,12 @@ export function useUser() {
     return () => {
       isMounted = false;
     };
-  }, [deviceId, userId, storageInitialized, getUserByDeviceId, registerDevice, retryCount]);
+  }, [anonymousId, userId, storageInitialized, getUserByDeviceId, registerDevice, retryCount]);
 
   return {
     userId,
     user,
-    deviceId,
+    anonymousId, // Return anonymousId instead of deviceId
     isLoading: isLoading || registerLoading || getUserLoading,
     error: error || registerError || getUserError,
     // Create a method to retry registration
@@ -188,4 +175,4 @@ export function useUser() {
       }
     }
   };
-} 
+}

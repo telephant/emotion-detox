@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { STORAGE_KEYS, useStorage } from '@/hooks/useStorage';
-import { apiClient } from '@/services/api';
+import { moodsApi } from '@/api/moods';
 import { Feather } from '@expo/vector-icons';
 import { Mood } from '@repo/shared-types';
 import { router } from 'expo-router';
@@ -50,7 +50,7 @@ export default function MoodListScreen() {
         return;
       }
       
-      const response = await apiClient.getUserMoods(userId);
+      const response = await moodsApi.getUserMoods(userId);
       setMoods(response.data.moods);
     } catch (error) {
       console.error('Error fetching moods:', error);
@@ -117,7 +117,7 @@ export default function MoodListScreen() {
         }
         
         // Create the mood via API
-        const response = await apiClient.createMood({
+        const response = await moodsApi.createMood({
           userId,
           text: newMoodText.trim()
         });

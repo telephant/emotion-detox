@@ -14,12 +14,12 @@ import {
 } from './responses';
 
 /**
- * API base path
+ * API base path - can be configured via environment
  */
-export const API_BASE_PATH = '';
+// export const API_BASE_PATH = '/api';
 
 /**
- * API endpoints as string literals
+ * API endpoints as string literals (without base path)
  */
 export const ApiEndpoints = {
   HEALTH: '/health',
@@ -32,6 +32,14 @@ export const ApiEndpoints = {
   EMOTION_MAP: '/urges/emotion-map',
   MOODS: '/moods',
   USER_MOODS: '/moods/user',
+  // Authentication endpoints
+  AUTH_REGISTER: '/auth/register',
+  AUTH_LOGIN: '/auth/login',
+  AUTH_MIGRATE: '/auth/migrate',
+  AUTH_PROFILE: '/auth/profile',
+  AUTH_REFRESH: '/auth/refresh',
+  AUTH_LOGOUT: '/auth/logout',
+  AUTH_CHECK: '/auth/check',
 } as const;
 
 /**

@@ -48,6 +48,7 @@ export interface Urge {
 export interface UrgeData {
   type: string;
   userId: string;
+  deviceId?: string; // Optional deviceId for user creation/lookup
   status?: UrgeStatus; // Optional since PENDING is the default
 }
 
@@ -58,6 +59,7 @@ export interface UrgeStatusUpdateData {
   id: number;
   status: UrgeStatus;
   userId?: string;
+  deviceId?: string; // Optional deviceId for user creation/lookup
 }
 
 /**

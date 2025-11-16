@@ -97,6 +97,10 @@ export default function HomeScreen() {
   const navigateToMoodList = () => {
     router.push('/moods');
   };
+
+  const navigateToSettings = () => {
+    router.push('/settings');
+  };
   
   // Function to scroll to the emotion map section
   const scrollToEmotionMap = () => {
@@ -134,14 +138,25 @@ export default function HomeScreen() {
       >
         <View style={styles.containerBody}>
           <View style={styles.header}>
-            <ThemedText type="title">Still the Want</ThemedText>
-            <ThemedText
-              type="subtitle"
-              color={Colors.light.primary}
-              fontWeight="200"
-            >
-              Pause. Feel. Let go.
-            </ThemedText>
+            <View style={styles.headerTop}>
+              <View style={styles.headerSpacer} />
+              <View style={styles.headerCenter}>
+                <ThemedText type="title">Still the Want</ThemedText>
+                <ThemedText
+                  type="subtitle"
+                  color={Colors.light.primary}
+                  fontWeight="200"
+                >
+                  Pause. Feel. Let go.
+                </ThemedText>
+              </View>
+              <TouchableOpacity
+                style={styles.settingsButton}
+                onPress={navigateToSettings}
+              >
+                <FontAwesome name="cog" size={24} color={Colors.light.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {status === 'idle' && (
@@ -247,6 +262,28 @@ const styles = StyleSheet.create({
     marginBottom: 60,
     gap: 20,
     display: 'flex',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  headerSpacer: {
+    width: 40, // Same width as settings button for balance
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 20,
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   title: {
     fontSize: 36,

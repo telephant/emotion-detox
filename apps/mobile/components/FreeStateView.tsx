@@ -4,9 +4,9 @@ import Button from '@/components/base/Button';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useAsync } from '@/hooks/useAsync';
-import { apiClient } from '@/services/api';
+import { urgesApi } from '@/api/urges';
 import { UrgeStatus } from '@repo/shared-types';
-import { getUserId } from '@/services/userStorage';
+import { authService } from '@/services/authService';
 
 interface FreeStateViewProps {
   id: number;
@@ -31,15 +31,15 @@ export const FreeStateView = ({
     execute,
     loading,
     error,
-  } = useAsync(apiClient.updateUrgeStatus, false);
+  } = useAsync(urgesApi.updateUrgeStatus, false);
   
   // Fetch user ID on component mount
   useEffect(() => {
     const fetchUserId = async () => {
-      const id = await getUserId();
+      const id = await authService.getCurrentUserId();
       setUserId(id);
     };
-    
+
     fetchUserId();
   }, []);
   
@@ -73,6 +73,7 @@ export const FreeStateView = ({
     execute({
       id,
       userId,
+      deviceId: userId, // Send both for server to handle user creation
       status: UrgeStatus.PEACEFUL,
     });
     onPressPeaceful();
@@ -88,6 +89,7 @@ export const FreeStateView = ({
     execute({
       id,
       userId,
+      deviceId: userId, // Send both for server to handle user creation
       status: UrgeStatus.PRESENT,
     });
     onPressUrge();
@@ -103,6 +105,7 @@ export const FreeStateView = ({
     execute({
       id,
       userId,
+      deviceId: userId, // Send both for server to handle user creation
       status: UrgeStatus.OVERCOME,
     });
     onPressUrgeOver();

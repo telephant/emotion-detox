@@ -5,6 +5,7 @@ import healthRoutes from './routes/healthRoutes';
 import urgeRoutes from './routes/urgeRoutes';
 import userRoutes from './routes/userRoutes';
 import moodRoutes from './routes/moodRoutes';
+import authRoutes from './routes/authRoutes';
 
 /**
  * Creates and configures the Express application
@@ -28,6 +29,8 @@ export function createApp(): express.Application {
   app.use('/api/urges', urgeRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/moods', moodRoutes);
+  app.use('/api/auth', authRoutes);
+  app.use('/api/auth', authRoutes);
 
   // Root route for API
   app.get('/', (req, res) => {
